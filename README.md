@@ -1,3 +1,3 @@
 What is web server 
             https://www.youtube.com/watch?v=Ad7nbWf6fjQ&ab_channel=AlmTech
-![Screenshot](https://www.google.com/imgres?imgurl=https%3A%2F%2Fmedia.geeksforgeeks.org%2Fwp-content%2Fuploads%2F20190927155217%2Fwebserver.png&imgrefurl=https%3A%2F%2Fwww.geeksforgeeks.org%2Fweb-server-and-its-type%2F&tbnid=SsnqxsU4e2kfXM&vet=12ahUKEwjVtuS5-9D8AhUZUqQEHR13B5gQMygAegUIARDcAQ..i&docid=iC0mgsjnNwFQSM&w=796&h=260&q=web%20server&ved=2ahUKEwjVtuS5-9D8AhUZUqQEHR13B5gQMygAegUIARDcAQ)
+![Screenshot](https://media.geeksforgeeks.org/wp-content/uploads/20190927155217/webserver.png)
