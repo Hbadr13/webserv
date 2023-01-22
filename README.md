@@ -41,7 +41,9 @@ int select(int nfds, fd_set *readfds, fd_set *writefds,
 ```
 
 **nfds**: The highest-numbered file descriptor in any of the three sets, plus 1.
+
 **readfds**: A set of file descriptors to be checked for readability.
+
 **writefds**: A set of file descriptors to be checked for writability.
 **exceptfds**: A set of file descriptors to be checked for exceptions.
 **timeout**: A pointer to a struct timeval structure that specifies the maximum time for which the call should block, or NULL if the call should block indefinitely.
