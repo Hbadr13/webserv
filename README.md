@@ -44,7 +44,7 @@ int select(int nfds, fd_set *readfds, fd_set *writefds,
 
 **readfds**: A set of file descriptors to be checked for readability.
 
-**writefds**: A set of file descriptors to be checked for writability.
+**writefds**: A set of file descriptors to be checked for writability.\n**
 **exceptfds**: A set of file descriptors to be checked for exceptions.
 **timeout**: A pointer to a struct timeval structure that specifies the maximum time for which the call should block, or NULL if the call should block indefinitely.
 The select() system call modifies the file descriptor sets to indicate which file descriptors are ready for the specified operations. It returns the number of ready file descriptors, or -1 if an error occurred.
