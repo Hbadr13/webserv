@@ -41,7 +41,6 @@ int select(int nfds, fd_set *readfds, fd_set *writefds,
 ```
 
 **nfds**: The highest-numbered file descriptor in any of the three sets, plus 1
-
 **readfds**: A set of file descriptors to be checked for readability.
 
 **writefds**: A set of file descriptors to be checked for writability.
