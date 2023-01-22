@@ -22,6 +22,7 @@
 //     return 0;
 // }
 
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -30,50 +31,51 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-int main() {
+int main()
+{
     // Create a socket and bind it to an IP and port
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in address;
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(7070);
-    bind(server_socket, (sockaddr*) &address, sizeof(address));
+    address.sin_port = htons(7010);
+    bind(server_socket, (sockaddr *)&address, sizeof(address));
 
     // Listen for incoming connections
     listen(server_socket, 5);
 
     // while (true) {
-        // Accept a connection from a client
-        sockaddr_in client_address;
-        socklen_t client_len = sizeof(client_address);
-        int client_socket = accept(server_socket, (sockaddr*) &client_address, &client_len);
+    // Accept a connection from a client
+    sockaddr_in client_address;
+    socklen_t client_len = sizeof(client_address);
+    int client_socket = accept(server_socket, (sockaddr *)&client_address, &client_len);
+    printf("werwer\r\njsd");
 
-        // Read the request from the client
-        char buffer[1024];
-        recv(client_socket, buffer, sizeof(buffer), 0);
+    // Read the request from the client
+    char buffer[1024];
+    recv(client_socket, buffer, sizeof(buffer), 0);
 
-        // Check if the request is for the index.html file
-        std::string request(buffer);
-        if (request.find("GET /index.html") != std::string::npos) {
-            // Open the index.html file
-            std::ifstream file("index.html");
-            std::stringstream html;
-            html << file.rdbuf();
+    // Check if the request is for the index.html file
+    std::string request(buffer);
+    if (request.find("GET /index.html") != std::string::npos)
+    {
+        // Open the index.html file
+        std::ifstream file("index.html");
+        std::stringstream html;
+        html << file.rdbuf();
 
-            // Create the HTTP response
-            std::string response = "HTTP/1.1 200 OK\r\n";
-            response += "Content-Type: text/html\r\n";
-            response += "Content-Length: " + std::to_string(html.str().size()) + "\r\n";
-            response += "\r\n";
-            response += html.str();
+        // Create the HTTP response
+        std::string response = "HTTP/1.1 200 OK\r\n";
+        response += "Content-Type: text/html\r\n";
+        response += "Content-Length: " + std::to_string(html.str().size()) + "\r\n";
+        response += "\r\n";
+        response += html.str();
 
-            // Send the response to the client
-            send(client_socket, response.c_str(), response.size(), 0);
-        }
-    printf("\r\njsd");
-        // Close the connection to the client
-        close(client_socket);
+        // Send the response to the client
+        send(client_socket, response.c_str(), response.size(), 0);
+    }
+    // Close the connection to the client
+    close(client_socket);
     // }
     return 0;
 }
-
