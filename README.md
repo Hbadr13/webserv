@@ -40,7 +40,8 @@ int select(int nfds, fd_set *readfds, fd_set *writefds,
            fd_set *exceptfds, struct timeval *timeout);
 ```
 
-**nfds**: The highest-numbered file descriptor in any of the three sets, plus 1
+**nfds**: The highest-numbered file descriptor in any of the three sets, plus 1.\n**
+
 **readfds**: A set of file descriptors to be checked for readability.
 
 **writefds**: A set of file descriptors to be checked for writability.
