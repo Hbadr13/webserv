@@ -19,6 +19,14 @@ What is **OSI** : video
 
 
 **Sockets**
+Programming with TCP/IP sockets
+There are a few steps involved in using sockets:
+
+Create the socket
+Identify the socket
+On the server, wait for an incoming connection
+Send and receive messages
+Close the socket
 https://www.geeksforgeeks.org/socket-programming-cc/
 
 
