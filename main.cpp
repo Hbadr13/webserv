@@ -7,7 +7,8 @@ int main(int argc, char **argv)
         return 1;
     myserver.run_server();
 
-
+    std::string host = "localhost";
+    std::string port = "80";
     return 0;
 
 }
