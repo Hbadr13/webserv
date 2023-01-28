@@ -1,8 +1,8 @@
 NAME 		= webserv
-SRC_FILE 	= main.cpp
+SRC_FILE 	= main.cpp src/webserv.cpp src/webserv_util.cpp
 OBJ_FILE	= $(SRC_FILE:.cpp=.o)
 CC			= c++
-CFLAG		= #-Wall -Wextra -Werror -std=c++98
+CFLAG		=  -std=c++98 #-Wall -Wextra -Werror
 HEADERS		= include/webserv.hpp
 RM			= rm -f
 
@@ -19,5 +19,5 @@ clean 	:
 
 fclean : clean
 		$(RM) $(NAME)
-
+		
 re : fclean all
