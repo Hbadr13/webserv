@@ -18,7 +18,90 @@ Configuration::Configuration()
 {
 
 }
-
+void Configuration::config_valide()
+{
+    int i = 0;
+    while (i < this->config_variable.size())
+    {
+        this->config_variable[i].second.pop_back();
+        if(!this->config_variable[i].first.compare("listen"))
+        {
+            if(this->config_variable[i].second.size() != 1)
+                error_conf(330);
+        }
+        else if(!this->config_variable[i].first.compare("server_name"))
+        {
+            if(this->config_variable[i].second.size() != 1)
+                error_conf(331);
+        }
+        else if(!this->config_variable[i].first.compare("host"))
+        {
+            if(this->config_variable[i].second.size() != 1)
+                error_conf(332);
+        }
+        else if(!this->config_variable[i].first.compare("root"))
+        {
+            if(this->config_variable[i].second.size() != 1)
+                error_conf(333);
+        }
+        else if(!this->config_variable[i].first.compare("limit_client_body_size"))
+        {
+            if(this->config_variable[i].second.size() != 1)
+                error_conf(334);
+        }
+        else if(!this->config_variable[i].first.compare("index"))
+        {
+            if(this->config_variable[i].second.size() != 1)
+                error_conf(335);
+        }
+        else
+        {
+            std::cout<<"error varaible11 "<<this->config_variable[i].first<<i<<":\n\n";
+            exit(1);
+        }
+        i++;
+    }  
+    i = 0;
+    while(i < this->locations.size())
+    {
+        int j = 0;
+        while (j < this->locations[i].second.size())
+        {
+            if(!this->locations[i].second[j].first.compare("root"))
+            {
+                if(this->locations[i].second[j].second.size() != 1)
+                    error_conf(222);
+            }
+            else if(!this->locations[i].second[j].first.compare("cgi_execute"))
+            ;
+            else if(!this->locations[i].second[j].first.compare("index"))
+            {
+                if(this->locations[i].second[j].second.size() != 1)
+                    error_conf(222);
+            }
+            else if(!this->locations[i].second[j].first.compare("autoindex"))
+            {
+                if(this->locations[i].second[j].second.size() != 1)
+                    error_conf(222);
+            }
+            else if(!this->locations[i].second[j].first.compare("allow_methods"))
+            ;
+            else if(!this->locations[i].second[j].first.compare("limit_client_body_size"))
+            {
+                if(this->locations[i].second[j].second.size() != 1)
+                    error_conf(222);
+            }
+            else
+            {
+                std::cout<<"error varaible22 "<<this->locations[i].second[j].first<< j <<":\n\n";
+                exit(1);
+            }
+            j++;
+        }
+        i++;
+    }
+    // exit(1);
+}
 Configuration::Configuration(std::vector<std::string> &vect_conf)
 {
     this->config = vect_conf;
@@ -30,6 +113,7 @@ Configuration::Configuration(std::vector<std::string> &vect_conf)
     syntax_error();
     parsing_Config_file();
     init_my_config();
+    config_valide();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +127,8 @@ Configuration::Configuration(std::vector<std::string> &vect_conf)
 
 Configuration::~Configuration()
 {
-}/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  ____    ___  _________  ____    ___   ______     _________   _______        _________   _____    ____   ____  _____     ______   _________   _____     ____   _____  _____   //
 // |_   \  /  _||_   ___  | _   \  /     |_   _ \   |_   ___  | |_   __ \      |_   ___  | |_   _|  |_   | |_   \|_   _|  .' ___  | |  _   _  | |_   _|  .'    `. |_   \|_   _|  //
 //   |   \/   |   | |_  \_|  |   \/   |    | |_) |    | |_  \_|   | |__) |       | |_  \_|   | |      | |    |   \ | |   / .'   \_| |_/ | | \_|   | |   /  .--.  \  |   \ | |    //
@@ -69,6 +154,11 @@ void Configuration::parsing_Config_file()
             if (!this->config[i].compare(";"))
                 vectr.push_back(this->config[i]);
         }
+         if(vectr.empty())
+            {
+                std::cout<<"variable 5awi: "<<word0<<"\n\n";
+                exit(2);
+            }
         this->config_variable.push_back(std::make_pair(word0, vectr));
         if (!this->config[i].compare("location"))
             break;
@@ -87,9 +177,19 @@ void Configuration::parsing_Config_file()
             std::vector<std::string> vraibl;
             while (this->config[i].compare(";") && this->config[i].compare("}"))
                 vraibl.push_back(this->config[i++]);
+            if(vraibl.empty())
+            {
+                std::cout<<"variable 5awi 2\n\n";
+                exit(2);
+            }
             location.push_back(std::make_pair(mot2, vraibl));
-            i++;
+                i++;
         }
+               if(location.empty())
+            {
+                std::cout<<"location 5awi:  3"<<mot1<<"\n\n";
+                exit(2);
+            }
         this->locations.push_back(std::make_pair(mot1, location));
         i++;
         i++;
@@ -103,24 +203,19 @@ void  Configuration::init_my_config()
     while (i < this->config_variable.size())
     {
         if(!this->config_variable[i].first.compare("listen"))
-            this->listen = atoi(this->config_variable[i].second[0].c_str()) ;
-        if(!this->config_variable[i].first.compare("server_name"))
+            this->listen = atoi(this->config_variable[i].second[0].c_str());
+        else if(!this->config_variable[i].first.compare("server_name"))
             this->server_names = this->config_variable[i].second;
-        if(!this->config_variable[i].first.compare("host"))
+        else if(!this->config_variable[i].first.compare("host"))
             this->host = this->config_variable[i].second[0];
-        if(!this->config_variable[i].first.compare("root"))
+        else if(!this->config_variable[i].first.compare("root"))
             this->root = this->config_variable[i].second[0]; 
-        if(!this->config_variable[i].first.compare("limit_client_body_size"))
-            this->limit_client_body_size = 1;//this->config_variable[i].second;
-        if(!this->config_variable[i].first.compare("index"))
+        else if(!this->config_variable[i].first.compare("limit_client_body_size"))
+            this->limit_client_body_size = this->config_variable[i].second[0];
+        else if(!this->config_variable[i].first.compare("index"))
             this->index = this->config_variable[i].second;
-        if(!this->config_variable[i].first.compare("error_page"))
-        {
-
-        }
         i++;
     }
-    
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -143,11 +238,11 @@ std::vector<std::pair<std::string, std::vector<std::pair<std::string, std::vecto
     return this->locations;
 }
 
-int Configuration::getlisten() 
+int Configuration::getlisten()
 {
     return this->listen;
 }
-int Configuration::getlimit_client_body_size()
+std::string Configuration::getlimit_client_body_size()
 {
     return this->limit_client_body_size;
 }

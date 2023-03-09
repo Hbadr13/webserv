@@ -5,7 +5,7 @@ SRC_FILE 	= main.cpp src/webserv.cpp src/webserv_util.cpp   src/request/Prasing_
 			src/Configfile/Location.cpp src/response/Response.cpp
 OBJ_FILE	= $(SRC_FILE:.cpp=.o)
 CC			= c++
-# CFLAG		=  -std=c++98 #-Wall -Wextra -Werror
+CFLAG		=  -std=c++98 #-Wall -Wextra -Werror
 HEADERS		= src/webserv.hpp src/request/Prasing_Request.hpp \
 				src/Configfile/Configuration.hpp
 RM			= rm -f

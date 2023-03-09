@@ -12,17 +12,14 @@ class Configuration
 {
 private:
     std::vector<std::string> config;
-
     int listen ;
-    int limit_client_body_size;
-    std::string host;
     std::string root;
-    std::vector<std::string> index;
+    std::string host;
     std::vector<std::string> cgi;
+    std::vector<std::string> index;
+    std::string limit_client_body_size;
     std::vector<std::string> server_names;
-
     std::vector<std::pair<std::string, std::vector<std::string> > > config_variable;
-
     std::vector<std::pair<std::string, std::vector<std::pair<std::string, std::vector<std::string> > > > > locations;
 
 public:
@@ -34,12 +31,13 @@ public:
     void init_my_config();
     void syntax_error();
     int handling_bracket();
+    void config_valide();
     std::vector<std::pair<std::string, std::vector<std::string> > > getconfig_variable();
     std::vector<std::pair<std::string, std::vector<std::pair<std::string, std::vector<std::string> > > > > getlocations();
 
 
     int getlisten() ;
-    int getlimit_client_body_size();
+    std::string getlimit_client_body_size();
     std::string gethost();
     std::string getroot();
     std::vector<std::string> getindex();
@@ -50,22 +48,22 @@ public:
 class Location{
     private:
     int location_exist;
-    std::vector<std::string> root;
-    std::vector<std::string> autoindex;
-    std::vector<std::string> allow_methods;
-    std::vector<std::string> index;
-    std::vector<std::string> cgi_path;
+    std::string root;
+    std::string autoindex;
+    std::string index;
+    std::string cgi_path;
+    std::string return_path;
     std::vector<std::string> cgi_execute;
-    std::vector<std::string> return_path;
+    std::vector<std::string> allow_methods;
     public :
     Location(Configuration &conf, std::string);
-    std::vector<std::string> getroot();
-    std::vector<std::string> getautoindex();
-    std::vector<std::string> getallow_methods();
-    std::vector<std::string> getindex();
-    std::vector<std::string> getcgi_path();
+    std::string getroot();
+    std::string getautoindex();
+    std::string getindex();
+    std::string getcgi_path();
+    std::string getreturn_path();
     std::vector<std::string> getcgi_execute();
-    std::vector<std::string> getreturn_path();
+    std::vector<std::string> getallow_methods();
     int getlocation_exist();
 
 };

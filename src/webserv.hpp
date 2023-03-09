@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <arpa/inet.h>
+#include <sstream>
 #include <stdlib.h>
 class Webserv
 {

@@ -1,15 +1,26 @@
 #include "Configuration.hpp"
-
-std::vector<std::string> search_in_location(std::vector<std::pair<std::string, std::vector<std::string> > > &location, std::string varaible)
+std::vector<std::string> search_in_location_vector(std::vector<std::pair<std::string, std::vector<std::string> > > &location, std::string varaible)
 {
     int i = 0;
     while (i < location.size())
     {
-        if(!location[i].first.compare(varaible))
+        if (!location[i].first.compare(varaible))
             return location[i].second;
         i++;
     }
     return std::vector<std::string>();
+}
+
+std::string search_in_location_string(std::vector<std::pair<std::string, std::vector<std::string> > > &location, std::string varaible)
+{
+    int i = 0;
+    while (i < location.size())
+    {
+        if (!location[i].first.compare(varaible))
+            return location[i].second[0];
+        i++;
+    }
+    return std::string();
 }
 
 Location::Location(Configuration &conf, std::string path)
@@ -17,29 +28,36 @@ Location::Location(Configuration &conf, std::string path)
     int i = 0;
     while (i < conf.getlocations().size())
     {
-        if(!conf.getlocations()[i].first.compare(path))
+        if (!conf.getlocations()[i].first.compare(path))
         {
-            this->allow_methods = search_in_location(conf.getlocations()[i].second, "allow_methods");
-            this->cgi_execute = search_in_location(conf.getlocations()[i].second, "cgi_execute");
-            this->return_path = search_in_location(conf.getlocations()[i].second, "return_path");
-            this->autoindex = search_in_location(conf.getlocations()[i].second, "autoindex");
-            this->cgi_path = search_in_location(conf.getlocations()[i].second, "cgi_path");
-            this->index = search_in_location(conf.getlocations()[i].second, "index");
-            this->root = search_in_location(conf.getlocations()[i].second, "root");
-            std::cout<<"--------------------))))))))))))))))"<<this->autoindex[0];
+            std::vector<std::pair<std::string, std::vector<std::string> > > location = conf.getlocations()[i].second;
+            for (int j = 0; j < location.size(); j++)
+            {
+                if (!location[j].first.compare("allow_methods"))
+                    this->allow_methods = location[j].second;
+                if (!location[j].first.compare("cgi_execute"))
+                    this->cgi_execute = location[j].second;
+                if (!location[j].first.compare("return_path"))
+                    this->return_path = location[j].second[0];
+                if (!location[j].first.compare("cgi_path"))
+                    this->cgi_path = location[j].second[0];
+                if (!location[j].first.compare("index"))
+                    this->index = location[j].second[0];
+                if (!location[j].first.compare("root"))
+                    this->root = location[j].second[0];
+            }
+            std::cout << "--------------------))))))))))))))))" << this->autoindex[0];
         }
         i++;
     }
-    
-
 }
 
-std::vector<std::string> Location::getroot()
+std::string Location::getroot()
 {
     return this->root;
 }
 
-std::vector<std::string> Location::getautoindex()
+std::string Location::getautoindex()
 {
     return this->autoindex;
 }
@@ -49,12 +67,12 @@ std::vector<std::string> Location::getallow_methods()
     return this->allow_methods;
 }
 
-std::vector<std::string> Location::getindex()
+std::string Location::getindex()
 {
     return this->index;
 }
 
-std::vector<std::string> Location::getcgi_path()
+std::string Location::getcgi_path()
 {
     return this->cgi_path;
 }
@@ -62,7 +80,8 @@ std::vector<std::string> Location::getcgi_execute()
 {
     return this->cgi_execute;
 }
-std::vector<std::string> Location::getreturn_path()
+
+std::string Location::getreturn_path()
 {
     return this->return_path;
 }

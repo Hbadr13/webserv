@@ -1,5 +1,5 @@
 #include "webserv.hpp"
-#include "../src/response/response.hpp"
+#include "../src/response/Response.hpp"
 
 /////////////////////////////////////
 //      destructor constructor
@@ -272,6 +272,5 @@ std::vector<std::string> split_string(std::string str, char c)
             vect.push_back(mot);
         i++;
     }
-
     return vect;
 }
