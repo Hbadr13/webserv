@@ -17,17 +17,19 @@
 #include <arpa/inet.h>
 #include <map>
 #include <sstream>
-#include <string> 
+#include <string>
 #include "../request/Prasing_Request.hpp"
 #include "../Configfile/Configuration.hpp"
 
 class Response
 {
-    private : 
-        int status;
-        std ::map<std::string, std::string> mymap;
-        std::string respons;
-    public :
+private:
+    int status;
+    std ::map<std::string, std::string> mymap;
+    std::string respons;
+
+public:
+    int run_cgi();
     Response();
     Response(Prasing_Request rq, Configuration conf_serv);
     std ::string get_respons();

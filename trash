@@ -1,0 +1,10 @@
+hello
+Content-type: text/html
+
+html: body
+<div style="width: 100%; font-size: 40px; font-weight: bold; text-align: center;">
+CGI Script Test Page
+</div>
+</body>
+</html>
+8
