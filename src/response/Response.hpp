@@ -29,9 +29,10 @@ private:
     std::string respons;
 
 public:
-    int run_cgi();
+    int run_cgi(std::string url, Configuration conf_serv);
     Response();
     Response(Prasing_Request rq, Configuration conf_serv);
     std ::string get_respons();
 };
+std::vector<std::string> split_string(std::string str, char c);
 #endif

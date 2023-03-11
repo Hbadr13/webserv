@@ -15,9 +15,6 @@ int main(int argc, char **argv)
     // std::vector<Configuration> confs;
     // confs.push_back(conf);
     Webserv myserver(argv[1]);
-    std::cout<<myserver.getConfs().size()<<std::endl;
-    // print_config( myserver.getConfs()[0].getconfig_variable(), myserver.getConfs()[0].getlocations());
-    // print_config( myserver.getConfs()[1].getconfig_variable(), myserver.getConfs()[1].getlocations());
     if (-1 == myserver.init_server())
         return 1;
     myserver.run_server();

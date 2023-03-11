@@ -71,7 +71,7 @@ void Prasing_Request::prasing_headr(std ::string headrs)
         std ::string value = res[i].substr(res[i].find(" "));
         mymap.insert(std ::pair<std ::string, std::string>(key, value));
     }
-    std :: cout << mymap["Host"] << std::endl;
+    // std :: cout << mymap["Host"] << std::endl;
     if (status == 200)
     {
         if (this->methode == "POST" && mymap["Content-Type"].empty())

@@ -50,7 +50,6 @@ public:
     ~Webserv();
 };
 std::string cleaning_input(std::string str);
-std::vector<std::string> split_string(std::string str, char c);
 int msg_error(int status);
 std::string ft_read(std::string name);
 

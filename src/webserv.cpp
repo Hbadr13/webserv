@@ -100,8 +100,6 @@ void Webserv::setbacklog(int backlog)
 }
 
 
-
-
 //////////////////////////////////////////
 //      member function
 ////////////////////////////////////////
@@ -138,7 +136,6 @@ int Webserv::init_server()
             ft_exit("1");
         if (listen(sockfd, 5) == -1)
             ft_exit("2");
-        std::cout<<"{"<<this->confgs[i].getroot()<<std::endl;
         this->server.insert(std::make_pair(sockfd, this->confgs[i]));
         this->max_fd = sockfd;
         i++;
@@ -179,14 +176,14 @@ int Webserv::run_server()
     // FD_SET(this->sockfd, &this->stes_write);
     // this->max_fd = this->sockfd;
 
+    printf("------------> wait ....\n");
     while (true)
     {
-        printf("------------> wait ....\n");
+        std::cout << "=============================\n\n"<< std::endl;
         fd_set tempfds = this->stes_read;
         int fd_select = select(this->max_fd + 1, &tempfds, NULL, NULL, NULL);
         for (std::map<int, Configuration>::iterator it = this->server.begin(); it != this->server.end(); it++)
         {
-
             if (FD_ISSET(it->first, &tempfds))
             {
                 // if (fd == this->sockfd)
@@ -199,16 +196,11 @@ int Webserv::run_server()
                 // }
                 // else
                 // {
-                     it->second.getlocations();
+                    // it->second.getlocations();
                     recv(client_socket, client_msg, 4095, 0);
-
-                    std::cout << "=============================\n\n"
-                              << std::endl;
-                              Prasing_Request as(client_msg);
-                              
-                              Response  aj(as,it->second);
-                               std :: string respons = aj.get_respons();
-
+                    Prasing_Request as(client_msg);                      
+                    Response  aj(as,it->second);
+                    std :: string respons= aj.get_respons();
                     // for (int fd2 = 0; fd2 <= this->max_fd; fd2++)
                     // {
                     //     if (FD_ISSET(fd2, &this->stes_write))
@@ -251,26 +243,3 @@ std::string cleaning_input(std::string str)
     return dst;
 }
 
-std::vector<std::string> split_string(std::string str, char c)
-{
-    std::vector<std::string> vect;
-    std::string mot;
-    int start;
-    int i;
-
-    i = 0;
-
-    while (str[i])
-    {
-        while (str[i] && str[i] == c)
-            i++;
-        start = i;
-        while (str[i] && str[i] != c)
-            i++;
-        mot = str.substr(start, i - start);
-        if(!mot.empty())
-            vect.push_back(mot);
-        i++;
-    }
-    return vect;
-}

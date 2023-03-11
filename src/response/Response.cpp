@@ -14,6 +14,7 @@ std::string int_to_string(int numb)
     ss << numb;
     return ss.str();
 }
+
 std ::string chec_url(std ::string urll)
 {
     int i = 0;
@@ -33,9 +34,40 @@ std ::string chec_url(std ::string urll)
     }
     return result;
 }
+std::vector<std::string> split_string(std::string str, char c)
+{
+    std::vector<std::string> vect;
+    std::string mot;
+    int start;
+    int i;
+
+    i = 0;
+
+    while (str[i])
+    {
+        while (str[i] && str[i] == c)
+            i++;
+        start = i;
+        while (str[i] && str[i] != c)
+            i++;
+        mot = str.substr(start, i - start);
+        if(!mot.empty())
+            vect.push_back(mot);
+        i++;
+    }
+    return vect;
+}
+
+int find_location(std::string url, Configuration conf_serv)
+{
+    std::vector<std::string> vect_str = split_string(url,'/');
+    // for(int i = 0; i< vect_str.size();i++)
+    //     std::cout<<vect_str[i]<<"  ";
+    std::vector<std::pair<std::string, std::vector<std::pair<std::string, std::vector<std::string> > > > >   locations = conf_serv.getlocations();
+    return 1;
+}
 Response::Response(Prasing_Request rq, Configuration conf_serv)
 {
-    
     // status = rq.get_status();
     // mymap = rq.get_mymap();
     // std ::string url = rq.get_url();
@@ -46,6 +78,8 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
     // // if(autoindex == "off")
     // //    url1 = "/index.html";
     // std ::string root = "../my_web/" + url;
+    find_location(rq.get_url(), conf_serv);
+    // run_cgi(url, conf_serv);
     // if (1)
     // {
 

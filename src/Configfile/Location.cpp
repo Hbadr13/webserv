@@ -46,7 +46,6 @@ Location::Location(Configuration &conf, std::string path)
                 if (!location[j].first.compare("root"))
                     this->root = location[j].second[0];
             }
-            std::cout << "--------------------))))))))))))))))" << this->autoindex[0];
         }
         i++;
     }
