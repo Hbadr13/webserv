@@ -34,40 +34,46 @@ std ::string chec_url(std ::string urll)
     }
     return result;
 }
-std::vector<std::string> split_string(std::string str, char c)
+
+std::pair<Location, std::string> find_location(std::string url, Configuration conf_serv)
 {
-    std::vector<std::string> vect;
-    std::string mot;
-    int start;
-    int i;
-
-    i = 0;
-
-    while (str[i])
+    url = parsing_url(url);
+    std::vector<std::string> vect_str = split_string(url, '/');
+    std::string url_check;
+    int len = vect_str.size();
+    while (1)
     {
-        while (str[i] && str[i] == c)
+        url_check = "/";
+        int i = 0;
+        while (i < len)
+        {
+            url_check += vect_str[i];
+            if (i != len - 1)
+                url_check += "/";
             i++;
-        start = i;
-        while (str[i] && str[i] != c)
-            i++;
-        mot = str.substr(start, i - start);
-        if(!mot.empty())
-            vect.push_back(mot);
-        i++;
+        }
+        len--;
+        std::map<std::string, std::map<std::string, std::vector<std::string> > >::iterator it = conf_serv.getlocations().begin();
+        while (it != conf_serv.getlocations().end())
+        {
+            if (!it->first.compare(url_check))
+            {
+                // Location l()
+                Location location(conf_serv, it->first);
+                // std::cout << it->first << std::endl;
+                return std::pair<Location,std::string>(location, it->first);
+            }
+            it++;
+        }
+        if (!url_check.compare("/"))
+            break;
     }
-    return vect;
+    return std::pair<Location,std::string>(Location(), std::string());
 }
 
-int find_location(std::string url, Configuration conf_serv)
-{
-    std::vector<std::string> vect_str = split_string(url,'/');
-    // for(int i = 0; i< vect_str.size();i++)
-    //     std::cout<<vect_str[i]<<"  ";
-    std::vector<std::pair<std::string, std::vector<std::pair<std::string, std::vector<std::string> > > > >   locations = conf_serv.getlocations();
-    return 1;
-}
 Response::Response(Prasing_Request rq, Configuration conf_serv)
 {
+
     // status = rq.get_status();
     // mymap = rq.get_mymap();
     // std ::string url = rq.get_url();
@@ -78,8 +84,9 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
     // // if(autoindex == "off")
     // //    url1 = "/index.html";
     // std ::string root = "../my_web/" + url;
-    find_location(rq.get_url(), conf_serv);
-    // run_cgi(url, conf_serv);
+    std::pair<Location, std::string> location_and_url = find_location(rq.get_url(), conf_serv);
+    // std::cout<<location_and_url.first.getindex() << std::endl;
+    run_cgi(location_and_url.first, location_and_url.second , conf_serv);
     // if (1)
     // {
 

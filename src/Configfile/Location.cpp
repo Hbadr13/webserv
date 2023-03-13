@@ -26,28 +26,30 @@ std::string search_in_location_string(std::vector<std::pair<std::string, std::ve
 Location::Location(Configuration &conf, std::string path)
 {
     int i = 0;
-    while (i < conf.getlocations().size())
+    std::map<std::string, std::map<std::string, std::vector<std::string> > >::iterator it = conf.getlocations().begin();
+    while (it != conf.getlocations().end())
     {
-        if (!conf.getlocations()[i].first.compare(path))
+        if (!it->first.compare(path))
         {
-            std::vector<std::pair<std::string, std::vector<std::string> > > location = conf.getlocations()[i].second;
-            for (int j = 0; j < location.size(); j++)
+            std::map<std::string, std::vector<std::string> >::iterator it2 = it->second.begin();
+            while (it2 != it->second.end())
             {
-                if (!location[j].first.compare("allow_methods"))
-                    this->allow_methods = location[j].second;
-                if (!location[j].first.compare("cgi_execute"))
-                    this->cgi_execute = location[j].second;
-                if (!location[j].first.compare("return_path"))
-                    this->return_path = location[j].second[0];
-                if (!location[j].first.compare("cgi_path"))
-                    this->cgi_path = location[j].second[0];
-                if (!location[j].first.compare("index"))
-                    this->index = location[j].second[0];
-                if (!location[j].first.compare("root"))
-                    this->root = location[j].second[0];
+                if (!it2->first.compare("allow_methods"))
+                    this->allow_methods = it2->second;
+                if (!it2->first.compare("cgi_execute"))
+                    this->cgi_execute = it2->second;
+                if (!it2->first.compare("return_path"))
+                    this->return_path = it2->second[0];
+                if (!it2->first.compare("cgi_path"))
+                    this->cgi_path = it2->second[0];
+                if (!it2->first.compare("index"))
+                    this->index = it2->second[0];
+                if (!it2->first.compare("root"))
+                    this->root = it2->second[0];
+                it2++;
             }
         }
-        i++;
+        it++;
     }
 }
 

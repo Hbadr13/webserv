@@ -36,4 +36,5 @@ public:
     int get_status();
     std :: string get_budy_url();
 };
+
 #endif

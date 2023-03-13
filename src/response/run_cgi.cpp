@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-int Response::run_cgi(std::string url, Configuration conf_serv)
+int Response::run_cgi(Location location , std::string url, Configuration conf_serv)
 {
     std ::string root = conf_serv.getroot() + url;
     std::cout << "root :" << root << std::endl;

@@ -19,10 +19,14 @@ private:
     std::vector<std::string> index;
     std::string limit_client_body_size;
     std::vector<std::string> server_names;
-    std::vector<std::pair<std::string, std::vector<std::string> > > config_variable;
-    std::vector<std::pair<std::string, std::vector<std::pair<std::string, std::vector<std::string> > > > > locations;
-
+    std::map<std::string, std::map<std::string, std::vector<std::string> > > locations;
+    std::map<std::string, std::string> test;
 public:
+    std::map<std::string ,std::string> gettest()
+    {
+        return this->test;
+    }
+    std::map<std::string, std::vector<std::string> > config_variable;
     Configuration(std::vector<std::string> &vect_conf);
     Configuration();
     void parsing_Config_file();
@@ -32,8 +36,12 @@ public:
     void syntax_error();
     int handling_bracket();
     void config_valide();
-    std::vector<std::pair<std::string, std::vector<std::string> > > getconfig_variable();
-    std::vector<std::pair<std::string, std::vector<std::pair<std::string, std::vector<std::string> > > > > getlocations();
+    std::map<std::string, std::vector<std::string> >  getconfig_variable();
+    void setconfig_variable(std::map<std::string, std::vector<std::string> > &conf_v)
+    {
+        this->config_variable = conf_v;
+    }
+    std::map<std::string, std::map<std::string, std::vector<std::string> > > &getlocations();
 
 
     int getlisten() ;
@@ -56,6 +64,10 @@ class Location{
     std::vector<std::string> cgi_execute;
     std::vector<std::string> allow_methods;
     public :
+    Location()
+    {
+
+    }
     Location(Configuration &conf, std::string);
     std::string getroot();
     std::string getautoindex();
@@ -68,6 +80,8 @@ class Location{
 
 };
 
-void print_config(std::vector<std::pair<std::string, std::vector<std::string> > > config_variable, std::vector<std::pair<std::string, std::vector<std::pair<std::string, std::vector<std::string> > > > > locations);
+void print_config(std::map<std::string, std::vector<std::string> > config_variable, std::map<std::string, std::map<std::string, std::vector<std::string> > > locations);
 void error_conf(int status);
+std::vector<std::string> split_string(std::string str, char c);
+std::string parsing_url(std::string url);
 #endif
