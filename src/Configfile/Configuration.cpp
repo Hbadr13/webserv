@@ -260,7 +260,7 @@ void  Configuration::init_my_config()
         else if(!it->first.compare("host"))
             this->host = it->second[0];
         else if(!it->first.compare("root"))
-            this->root = "it->second[0]"; 
+            this->root = it->second[0]; 
         else if(!it->first.compare("limit_client_body_size"))
             this->limit_client_body_size = it->second[0];
         else if(!it->first.compare("index"))
