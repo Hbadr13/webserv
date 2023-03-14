@@ -236,7 +236,11 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
     {
         DIR *dir;
         dirent *ent;
-        dir = opendir(root.c_str());
+        if(autoindex == "on")
+            dir = opendir(root.c_str());
+        else
+            dir = opendir(url2.c_str());
+
         std::string url1;
         if (!location_and_url.first.getreturn_path().empty())
         {
@@ -365,6 +369,7 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
         }
         else if (dir != NULL)
         {
+            std :: cout << "ssssssssssssssssssssss\n";
             std ::string bady;
             std ::string msg;
             bady.append("HTTP/1.1 ");
