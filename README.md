@@ -89,5 +89,7 @@ readmi https://github.com/c3b5aw/webserv/blob/main/docs/config_file.md
 
 **CGI**
 run cgi in my laptop : https://techexpert.tips/nginx/python-cgi-nginx/
+
 [How to build a simple HTTP server](https://www6.uniovi.es/~antonio/ncsa_httpd/cgi/env.html)
+
 git add . ; git commit -m "http server" ; git push origin master 
