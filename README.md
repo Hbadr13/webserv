@@ -7,10 +7,6 @@ document    https://www.techtarget.com/whatis/definition/Web-server
 [HTTP: What are HTTP requests and response? :](https://www.cronj.com/blogwhat-are-http-requests-and-response/jFM6D7pdptSbA4zy)
 
 
-
-
-https://github.com/sFinOe/HTTP-Web-Server#readme
-
 ![Screenshot](https://media.geeksforgeeks.org/wp-content/uploads/20220330131350/StatediagramforserverandclientmodelofSocketdrawio2-448x660.png)
 
 What is **OSI** : video
@@ -18,7 +14,7 @@ What is **OSI** : video
 
 
 **Sockets**
-Programming with TCP/IP sockets
+[Programming with TCP/IP sockets](https://www.geeksforgeeks.org/socket-programming-cc/)
 There are a few steps involved in using sockets:
 
 Create the socket
@@ -26,7 +22,6 @@ Identify the socket
 On the server, wait for an incoming connection
 Send and receive messages
 Close the socket
-https://www.geeksforgeeks.org/socket-programming-cc/
 
 Learn **Select** system call in C
 The select() system call in C allows a program to monitor multiple file descriptor sources for events or data availability. It can be used to implement timeouts and to wait for multiple file descriptors to become ready for operations such as reading or writing.
