@@ -51,6 +51,5 @@ public:
 };
 std::string cleaning_input(std::string str);
 int msg_error(int status);
-std::string ft_read(std::string name);
 
 #endif

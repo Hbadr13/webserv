@@ -143,24 +143,7 @@ int Webserv::init_server()
 
     return 0;
 }
-std::string ft_read(std::string name)
-{
-    std::string line_s;
-    std::string line;
 
-    std::ifstream file(name.c_str());
-    if (file.is_open() == 0)
-    {
-        std::cout << "error: configiuration file note founde\n";
-        exit(1);
-    }
-    while (getline(file, line))
-    {
-        line.append("\n");
-        line_s += line;
-    }
-    return line_s;
-}
 
 int Webserv::run_server()
 {
@@ -198,6 +181,7 @@ int Webserv::run_server()
                 // {
                     // it->second.getlocations();
                     recv(client_socket, client_msg, 4095, 0);
+                    // std::cout<<client_msg;
                     Prasing_Request as(client_msg);                      
                     Response  aj(as,it->second);
                     std :: string respons= aj.get_respons();
@@ -206,7 +190,6 @@ int Webserv::run_server()
                     //     if (FD_ISSET(fd2, &this->stes_write))
                     //     {
                             send(client_socket, respons.c_str(), respons.length(), 0);
-                    //         printf("====> %d | %d\n", fd, fd2);
                     //         close(fd2);
                     //         FD_CLR(fd2, &this->stes_write);
                     //     }

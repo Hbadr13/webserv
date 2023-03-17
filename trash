@@ -1,10 +1,12 @@
-hello
-Content-type: text/html
+HTTP/1.1 404 Not Found
+server: web
+Content-Type: text/html
 
-html: body
-<div style="width: 100%; font-size: 40px; font-weight: bold; text-align: center;">
-CGI Script Test Page
-</div>
-</body>
+<html>
+        <head>
+                <title>may site</title>
+        </head>
+        <body>
+                <h1>web serv<br>exist</h1>
+        </body>
 </html>
-8
