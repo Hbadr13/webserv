@@ -13,7 +13,14 @@ int Prasing_Request::check_first_line(std::string first_line)
         return (0);
     }
     char *urlll = strtok(NULL, " ");
-    this->url = urlll;
+    for(int i = 0; i < strlen(urlll); i++)
+        if(urlll[i] != '?')
+            this->url += urlll[i]; 
+        std::string all_url = std::string(urlll);
+    if(all_url.find('?') != std::string::npos)
+        this->url = (all_url).substr(0, all_url.find('?'));
+    else
+        this->url = all_url;
     if (urlll[0] != '/')
     {
         std ::cout << "400 Bad Request" << std::endl;
@@ -27,12 +34,12 @@ int Prasing_Request::check_first_line(std::string first_line)
         status = 505;
         return (0);
     }
-    if (strchr(this->url.c_str(), '?'))
+    if (strchr(all_url.c_str(), '?'))
     {
-        strtok((char *)this->url.c_str(), "?");
+        strtok((char *)all_url.c_str(), "?");
         char *str = strtok(NULL, "?");
-        this->budy_url = str;
-        // std ::cout << this->budy_url << std::endl;
+        if(str)
+            this->budy_url = str;
     }
     return (1);
 }
@@ -63,7 +70,7 @@ std ::vector<std ::string> split(std::string str, std::string delimiter)
 
 void Prasing_Request::prasing_headr(std ::string headrs)
 {
-
+    std::cout<<"prasing_headr "<<headrs<<std::endl;
     std ::vector<std ::string> res = split(headrs, "\r\n");
     for (int i = 0; i < res.size(); i++)
     {
@@ -74,12 +81,12 @@ void Prasing_Request::prasing_headr(std ::string headrs)
     // std :: cout << mymap["Host"] << std::endl;
     if (status == 200)
     {
-        if (this->methode == "POST" && mymap["Content-Type"].empty())
-        {
-            std ::cout << "error on Content-Type !!!" << std::endl;
-            status = 400;
-            return;
-        }
+        // if (this->methode == "POST" && mymap["Content-Type"].empty())
+        // {
+        //     std ::cout << "error on Content-Type !!!" << std::endl;
+        //     status = 400;
+        //     return;
+        // }
         if (this->methode == "POST" && (mymap["Content-Length"].empty() || atoi(mymap["Content-Length"].c_str()) < 0))
         {
             std ::cout << "error on Content-Length !!!" << std::endl;
@@ -92,7 +99,7 @@ void Prasing_Request::prasing_headr(std ::string headrs)
             status = 400;
             return;
         }
-        if (atoi(mymap["Content-Length"].c_str()) > 2000)
+        if (atoi(mymap["Content-Length"].c_str()) > 99999)
         {
             std ::cout << "eroore on size Content-Length " << std::endl;
             status = 400;

@@ -1,12 +1,19 @@
-print("HTTP/1.1 404 Not Found")
-print ("server: web")
-print("Content-Type: text/html")
-print("")
+print("Content_type: text/html\n\n")
 print("<html>")
-print("        <head>")
-print("                <title>may site</title>")
-print("        </head>")
-print("        <body>")
-print("                <h1>web serv<br>exist</h1>")
-print("        </body>")
+print("<head>")
+print("    <title>pytest</title>")
+print("</head>")
+print("<body>")
+print("       <py-script>")
+def wallis(n):
+    pi = 2
+    for i in range(1,n):
+        pi *= 4 * i ** 2 / (4 * i ** 2 - 1)
+    return pi
+
+pi = wallis(100000)
+s = f"π est approximativement {pi:.3f}"
+print(s)
+print("        </py-script>")
+print("</body>")
 print("</html>")

@@ -1,91 +1,98 @@
+#include <string>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <netdb.h>
-#include <string>
-#include <vector>
-#include <stack>
-#include <map>
-#include <string>
-#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include <iostream>
-#include <iostream>
-#include <sys/wait.h>
+#include <sys/event.h>
 
-std::vector<std::string> split_string(std::string str, char c)
+int init_socket(int port)
 {
-    std::vector<std::string> vect;
-    std::string mot;
-    int start;
-    int i;
+    int yes = 1;
+    int sockfd;
+    struct sockaddr_in serv_addr;
 
-    i = 0;
-
-    while (i < str.size())
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
     {
-        while (str[i] && str[i] == c)
-            i++;
-        start = i;
-        while (str[i] && str[i] != c)
-            i++;
-        mot = str.substr(start, i - start);
-        if (!mot.empty())
-            vect.push_back(mot);
-        i++;
+        perror("ERROR opening socket");
+        exit(1);
     }
-    return vect;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+                   sizeof(int)) == -1)
+    {
+        perror("ERROR");
+        exit(1);
+    }
+    bzero((char *)&serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(port);
+
+    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        perror("ERROR on binding");
+        exit(1);
+    }
+
+    if (listen(sockfd, 5) < 0)
+    {
+        perror("ERROR on listen");
+        exit(1);
+    }
+    return sockfd;
 }
 
-std::string parsing_url(std::string url)
+int main(int argc, char *argv[])
 {
-    std::string new_url;
-    std::vector<std::string> vect_str = split_string(url, '/');
-    if (vect_str.empty())
-        return "/";
-    for (int i = 0; i < vect_str.size(); i++)
-    {
-        if (i == 0)
-            new_url += "/";
-        new_url += vect_str[i];
-        if (!(i == vect_str.size() - 1))
-            new_url += "/";
-    }
-    return new_url;
-}
-int main(int ac, char **av)
-{
-    std::map<std::string, std::string> conf;
-    conf.insert(std::make_pair("/", "data1"));
-    conf.insert(std::make_pair("/home", "date2"));
-    conf.insert(std::make_pair("/home/code/test", "date3"));
-    std::string url = (std::string)av[1];
-
-    url = parsing_url(url);
-    std::vector<std::string> vect_str = split_string(url, '/');
-    std::string url_check;
-    int len = vect_str.size();
-
-    while (1)
-    {
-        url_check = "/";
-        int i = 0;
-        while (i < len)
-        {
-            url_check += vect_str[i];
-            if (i != len - 1)
-                url_check += "/";
-            i++;
-        }
-        len--;
-        std::map<std::string, std::string>::iterator it = conf.begin();
-        while (it != conf.end())
-        {
-            if (!it->first.compare(url_check))
-            {
-                std::cout << it->second << std::endl;
-                return 1;
-            }
-            it++;
-        }
-        if (!url_check.compare("/"))
-            break;
-    }
-    return 1;
+    int sockfd = init_socket(9090);
+    int max_fd = sockfd;
+    fd_set readfds, writefds;
+    FD_ZERO(&readfds);
+    FD_ZERO(&writefds);
+    FD_SET(sockfd, &readfds);
+    // FD_SET(1, &readfds);
+    struct timeval tv;
+    char buf[40000];
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+    // while (1)
+    // {
+    // }
+    int bit = select(max_fd + 1, &readfds, &writefds, NULL, NULL);
+    for (int i = 0; i <= max_fd; i++)
+        std::cout << i << std::endl;
+    std::cout << "Connect \n"
+              << std::endl;
+    int client_fd = accept(sockfd, NULL, NULL);
+    FD_SET(client_fd, &readfds);
+    bit = select(max_fd + 2, &readfds, &writefds, NULL, NULL);
+    std::cout << "ready  \n"
+              << std::endl;
+    int n;
+    bzero(buf, sizeof(buf));
+    read(client_fd, buf, sizeof(buf));
+    std::cout << buf;
+    read(client_fd, buf, sizeof(buf));
+    std::cout << buf;
+    read(client_fd, buf, sizeof(buf));
+    std::cout << buf;
+    read(client_fd, buf, sizeof(buf));
+    std::cout << buf;
+    read(client_fd, buf, sizeof(buf));
+    std::cout << buf;
+    // while (1)
+    //     ;
+    // read(client_fd, buf, sizeof(buf));
+    // std::cout << buf << std::endl;
+    // while (n = read(client_fd, buf, sizeof(buf)))
+    // {
+    //     std::cout << n;
+    //     if (n <= 0)
+    //         break;
+    // }
 }

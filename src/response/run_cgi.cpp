@@ -18,98 +18,177 @@ std::string ft_read(std::string name)
     }
     return line_s;
 }
+void free_tab(char **envp)
+{
+    for (int i = 0; envp[i] != NULL; i++)
+    {
+        free(envp[i]);
+    }
+    free(envp);
+}
 int ft_exitt(std::string &res)
 {
-
-    res += "<!DOCTYPE html>\n";
-    res += "<html>\n";
-    res += "	<head>\n";
-    res += "		<title>Cerveur 404</title>\n";
-    res += "	</head>\n";
-    res += "	<body>\n";
-    res += "		<h1>Error 404<br>Page not found</h1>\n";
-    res += "	</body>\n";
-    res += "</html>\n";
     return 1;
 }
 
-int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv)
+char **get_env_form_map(std::map<std::string, std::string> &map_env)
 {
-    std::cout << "cookie = " << requst.get_mymap()["Cookie"] << std::endl;
+    char **envp;
+    envp = (char **)malloc(sizeof(char *) * (map_env.size() + 1));
+    if (envp == NULL)
+        return NULL;
+    int i = 0;
+    std::map<std::string, std::string>::iterator it = map_env.begin();
+    while (it != map_env.end())
+    {
+        std::string str = it->first + "=" + it->second;
+        envp[i] = strdup(str.c_str());
+        if (envp[i] == NULL)
+            return envp;
+        it++;
+        i++;
+    }
+    envp[i] = NULL;
+
+    return envp;
+}
+
+char **init_may_env(Location &location, Prasing_Request &requst, Configuration &conf_serv)
+{
+    std::string url = parsing_url(requst.get_url());
     std::map<std::string, std::string> map_env;
-    if (!requst.get_method().compare("POST"))
+    char *ptr;
+
+    if (requst.get_method().compare("POST") == 0)
         map_env["CONTENT_LENGTH"] = "";
     map_env["CONTENT_TYPE"] = "";
     map_env["HTTP_COOKIE"] = requst.get_mymap()["Cookie"];
     map_env["HTTP_USER_AGENT"] = requst.get_mymap()["User-Agent"];
     map_env["PATH_INFO"] = requst.get_mymap()[""];
-    map_env["QUERY_STRING"] = "";
-    map_env["REMOTE_ADDR"] = "localhost" + conf_serv.getlisten();
+    map_env["QUERY_STRING"] = requst.get_budy_url();
+    map_env["REMOTE_ADDR"] = "localhost" + int_to_string(conf_serv.getlisten());
     map_env["REQUEST_METHOD"] = requst.get_method();
-    map_env["SCRIPT_FILENAME"] = "";
+    map_env["SCRIPT_FILENAME"] = requst.get_url().substr(requst.get_url().rfind("/"), requst.get_url().size());
     map_env["SERVER_NAME"] = "localhost";
-    
+    map_env["GATEWAY_INTERFACE"] = "CGI/1.1";
+    map_env["SERVER_PORT"] = int_to_string(conf_serv.getlisten());
+    map_env["SERVER_PROTOCOL"] = "HTTP/1.1";
+    ptr = getcwd(NULL, 0);
+    if (ptr)
+        map_env["PATH_TRANSLATED"] = (std::string)getcwd(NULL, 0);
+    else
+        map_env["PATH_TRANSLATED"] = "";
+    free(ptr);
+    map_env["SCRIPT_FILENAME"] = url.substr(1, url.size());
+    map_env["SCRIPT_NAME"] = url;
+    map_env["AUTH_TYPE"] = "Basic";
+    map_env["CONTENT_TYPE"] = "";
+    char **envp = get_env_form_map(map_env);
+    return envp;
+}
+
+int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv)
+{
     std::string status;
     std::string root;
-    if (!location.getroot().empty() && !conf_serv.getroot().empty())
-        return ft_exitt(this->respons);
+    std::string path;
+    std::string url;
+    char **envp;
+    char **av;
+    int pid;
+    int fd;
+
+    av = (char **)malloc(sizeof(char *) * 3);
+    if (0)
+    {
+        this->respons = "HTTP/1.1 405 Method Not Allowed\n\n";
+        this->respons += ft_read("www/error/error404.html");
+        throw std::string("ERROR CGI: Method Not Allowed");
+    }
+    if (av == NULL)
+    {
+        this->respons = "HTTP/1.1 503 Service Unavailable\n\n";
+        this->respons += ft_read("www/error/error404.html");
+        throw std::string("ERROR CGI: malloc");
+    }
+    url = parsing_url(requst.get_url());
+    if (location.getroot().empty() && conf_serv.getroot().empty())
+    {
+        this->respons = "HTTP/1.1 403 Forbidden\n\n";
+        this->respons += ft_read("www/error/error404.html");
+        throw std::string("ERROR CGI: root not found");
+    }
     root = conf_serv.getroot();
     if (!location.getroot().empty())
         root = location.getroot();
-    char **av;
-    av = (char **)malloc(sizeof(char *) * 3);
-    std::string path = requst.get_url();
+    path = url;
+    std::cout << "path =" << path << std::endl;
     if (path.compare(path.length() - 3, 3, ".py"))
-        return ft_exitt(this->respons);
+    {
+        this->respons = "HTTP/1.1 403 Forbidden\n\n";
+        this->respons += ft_read("www/error/error404.html");
+        this->respons += "403";
+        throw std::string("ERROR CGI: may cgi works with code python only");
+    }
     path = root + path;
     av[0] = strdup("/usr/bin/python3");
-    av[1] = strdup(path.c_str());
+    av[1] = strdup((path + "").c_str());
     av[2] = NULL;
-    std::cout << path << std::endl;
     int fd_execute = open(path.c_str(), O_RDONLY);
+    int status_exec;
     if (fd_execute < 0)
     {
         this->respons = "HTTP/1.1 404 not found\n\n";
-        return ft_exitt(this->respons);
+        this->respons += ft_read("www/error/error404.html");
+        this->respons += "404";
+        throw std::string("ERROR CGI: path not found {" + path + "}");
     }
-    int fd = open("trash", O_WRONLY | O_TRUNC);
+    std::ofstream outfile("www/trash/trash.txt");
+    fd = open("www/trash/trash.txt", O_WRONLY | O_TRUNC);
     if (fd < 0)
-        return ft_exitt(this->respons);
-    int pid = fork();
+    {
+        this->respons = "HTTP/1.1 500 Internal Server Error\n\n";
+        this->respons += ft_read("www/error/error404.html");
+        this->respons += "500";
+        throw std::string("ERROR CGI: www/trash/trash.txt not found");
+    }
+    envp = init_may_env(location, requst, conf_serv);
+    pid = fork();
+    if (pid == -1)
+    {
+        this->respons = "HTTP/1.1 500 Internal Server Error\n\n";
+        this->respons += ft_read("www/error/error404.html");
+        this->respons += "500";
+        throw std::string("ERROR CGI: problem in fork");
+    }
     if (pid == 0)
     {
         dup2(fd, 1);
-        execve(av[0], av, NULL);
-        std::cout << "hello\n";
+        execve(av[0], av, envp);
         exit(1);
     }
     else
     {
-        waitpid(pid, NULL, 0);
+        waitpid(pid, &status_exec, 0);
         close(fd);
         close(fd_execute);
+        if (status_exec)
+        {
+            this->respons = "HTTP/1.1 500 Internal Server Error\n\n";
+            this->respons += ft_read("www/error/error404.html");
+            this->respons += "500";
+            free_tab(envp);
+            unlink("www/trash/trash.txt");
+            throw std::string("ERROR CGI: error in execve");
+        }
     }
-    this->respons = ft_read("trash");
+    this->respons = "HTTP/1.0 200\n";
+    this->respons += ft_read("www/trash/trash.txt");
+    std::cout << "done" << std::endl;
+    free_tab(envp);
+    unlink("www/trash/trash.txt");
     return 1;
 }
-
-// GET /cgi-bin/test.py HTTP/1.1
-// Host: localhost:9010
-// Connection: keep-alive
-// Cache-Control: max-age=0
-// sec-ch-ua: "Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"
-// sec-ch-ua-mobile: ?0
-// sec-ch-ua-platform: "Linux"
-// Upgrade-Insecure-Requests: 1
-// User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36
-// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
-// Sec-Fetch-Site: none
-// Sec-Fetch-Mode: navigate
-// Sec-Fetch-User: ?1
-// Sec-Fetch-Dest: document
-// Accept-Encoding: gzip, deflate, br
-// Accept-Language: en-US,en;q=0.9,fr-MA;q=0.8,fr;q=0.7,ar-MA;q=0.6,ar;q=0.5,en-CA;q=0.4,es-US;q=0.3,es;q=0.2
-// Cookie: SL_G_WPT_TO=en; SL_GWPT_Show_Hide_tmp=undefined; SL_wptGlobTipTmp=undefined
 
 // 200 OK: The request was successful
 // 201 Created: The request was successful and a new resource was created

@@ -35,6 +35,7 @@ public:
     std ::string get_respons();
 };
 std::string ft_read(std::string name);
+std::string int_to_string(int numb);
 // std::vector<std::string> split_string(std::string str, char c);
 // std::string parsing_url(std::string url);
 #endif

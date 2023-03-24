@@ -85,5 +85,6 @@ readmi https://github.com/c3b5aw/webserv/blob/main/docs/config_file.md
 run cgi in my laptop : https://techexpert.tips/nginx/python-cgi-nginx/
 
 [ CGI Environment Variables](https://www6.uniovi.es/~antonio/ncsa_httpd/cgi/env.html)
+[Core Content Server Variables and Functions](https://docs.oracle.com/cd/E21043_01/doc.1111/e10726/toc.htm)
 
 git add . ; git commit -m "http server" ; git push origin master 
