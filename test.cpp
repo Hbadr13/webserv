@@ -1,98 +1,196 @@
-#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+#include <poll.h>
+#include <fcntl.h>
 #include <iostream>
-#include <sys/event.h>
+#define content_length 100
+#define MAX_CLIENTS 1000
 
-int init_socket(int port)
+int main(int argc, char **argv)
 {
-    int yes = 1;
-    int sockfd;
-    struct sockaddr_in serv_addr;
+    int n;
+    int listen_fd, conn_fd, nready;
+    struct sockaddr_in serv_addr, cli_addr;
+    socklen_t cli_len;
+    char buf[content_length];
+    int i, j, client_count = 0;
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0)
+    // create listening socket
+    if ((listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        perror("ERROR opening socket");
+        perror("socket error");
         exit(1);
     }
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+    if (fcntl(listen_fd, F_SETFL, O_NONBLOCK) < 0)
+    {
+        perror("fcntl error");
+        exit(1);
+    }
+    int yes = 1;
+    if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &yes,
                    sizeof(int)) == -1)
     {
-        perror("ERROR");
+        perror("setsockopt");
         exit(1);
-    }
-    bzero((char *)&serv_addr, sizeof(serv_addr));
+    } // set up server address
+    memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(port);
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_port = htons(8080);
 
-    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    // bind listening socket to server address
+    if (bind(listen_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
-        perror("ERROR on binding");
+        perror("bind error");
         exit(1);
     }
 
-    if (listen(sockfd, 5) < 0)
+    // listen for incoming connections
+    if (listen(listen_fd, 10) < 0)
     {
-        perror("ERROR on listen");
+        perror("listen error");
         exit(1);
     }
-    return sockfd;
-}
+    // initialize clients array with listening socket]
+    struct pollfd clients[MAX_CLIENTS];
+    for (i = 0; i < MAX_CLIENTS; i++)
+    {
+        clients[i].fd = -1;
+    }
+    clients[0].fd = listen_fd;
+    clients[0].events = POLLIN | POLLOUT;
 
-int main(int argc, char *argv[])
-{
-    int sockfd = init_socket(9090);
-    int max_fd = sockfd;
-    fd_set readfds, writefds;
-    FD_ZERO(&readfds);
-    FD_ZERO(&writefds);
-    FD_SET(sockfd, &readfds);
-    // FD_SET(1, &readfds);
-    struct timeval tv;
-    char buf[40000];
-    tv.tv_sec = 5;
-    tv.tv_usec = 0;
-    // while (1)
-    // {
-    // }
-    int bit = select(max_fd + 1, &readfds, &writefds, NULL, NULL);
-    for (int i = 0; i <= max_fd; i++)
-        std::cout << i << std::endl;
-    std::cout << "Connect \n"
-              << std::endl;
-    int client_fd = accept(sockfd, NULL, NULL);
-    FD_SET(client_fd, &readfds);
-    bit = select(max_fd + 2, &readfds, &writefds, NULL, NULL);
-    std::cout << "ready  \n"
-              << std::endl;
-    int n;
-    bzero(buf, sizeof(buf));
-    read(client_fd, buf, sizeof(buf));
-    std::cout << buf;
-    read(client_fd, buf, sizeof(buf));
-    std::cout << buf;
-    read(client_fd, buf, sizeof(buf));
-    std::cout << buf;
-    read(client_fd, buf, sizeof(buf));
-    std::cout << buf;
-    read(client_fd, buf, sizeof(buf));
-    std::cout << buf;
-    // while (1)
-    //     ;
-    // read(client_fd, buf, sizeof(buf));
-    // std::cout << buf << std::endl;
-    // while (n = read(client_fd, buf, sizeof(buf)))
-    // {
-    //     std::cout << n;
-    //     if (n <= 0)
-    //         break;
-    // }
+    int flag = 0;
+    std::string message;
+    
+    while (true)
+    {
+        nready = poll(clients, client_count + 1, -1);
+        if (nready < 0)
+        {
+            perror("poll error");
+            continue;
+        }
+
+        // check for activity on listening socket
+        if (clients[0].revents & POLLIN)
+        {
+            cli_len = sizeof(cli_addr);
+            conn_fd = accept(listen_fd, (struct sockaddr *)&cli_addr, &cli_len);
+            if (conn_fd < 0)
+            {
+                perror("accept error");
+                continue;
+            }
+            if (fcntl(conn_fd, F_SETFL, O_NONBLOCK) < 0)
+            {
+                perror("fcntl error");
+                exit(1);
+            }
+            // add new client to array
+            for (i = 1; i < MAX_CLIENTS; i++)
+            {
+                if (clients[i].fd < 0)
+                {
+                    clients[i].fd = conn_fd;
+                    clients[i].events = POLLIN;
+                    client_count++;
+                    break;
+                }
+            }
+            if (i == MAX_CLIENTS)
+            {
+                fprintf(stderr, "too many clients\n");
+                close(conn_fd);
+                continue;
+            }
+
+            printf("new connection from %s:%d (fd=%d)\n",
+                   inet_ntoa(cli_addr.sin_addr),
+                   ntohs(cli_addr.sin_port), conn_fd);
+        }
+
+        // check for activity on client sockets
+        for (i = 1; i <= client_count; i++)
+        {
+            if (clients[i].revents & POLLIN)
+            {
+                // clients[i].events = POLLIN ;
+                bzero(buf, sizeof(buf));
+                if ((n = read(clients[i].fd, buf, sizeof(buf))) < 0)
+                {
+                    if (n == -1)
+                    {
+                        perror("read error");
+                    }
+                    continue;
+                }
+                if (n == 0)
+                {
+                    printf("client %d closed connection\n", clients[i].fd);
+                    close(clients[i].fd);
+                    clients[i].fd = -1;
+                    continue;
+                }
+                message.append(buf, n);
+                // std::cout << message;
+                // if (message.length() == 832)
+                // {
+                int j = 0;
+                // if (message.length() == 17025)
+                if (message.find("\r\n\r\n") != std::string::npos)
+                {
+                    // while (j < message.length())
+                    // {
+                    //     if (message.find("\r\n\r\n") != std::string::npos)
+                    //     {
+                    clients[i].events = POLLOUT;
+                    std::cout << message;
+                    std::cout << message.length() << std::endl;
+                    // break;
+                    //     }
+                    //     j++;
+                }
+            }
+            // process HTTP request and send response
+            // in this example, we just send a "hello world" response
+            if (clients[i].revents & POLLOUT)
+            {
+                sprintf(buf, "HTTP/1.1 200 OK\r\n"
+                             "Content-Type: text/plain\r\n"
+                             "Content-Length: 12\r\n"
+                             "\r\n"
+                             "hello world\n");
+                n = strlen(buf);
+                if (write(clients[i].fd, buf, n) != n)
+                {
+                    // perror("write error");
+                    close(clients[i].fd);
+                    clients[i].fd = -1;
+                    continue;
+                }
+                message.clear();
+            }
+        }
+
+        // remove closed client sockets from array
+        // for (i = 1; i <= client_count; i++)
+        // {
+        //     if (clients[i].fd < 0)
+        //     {
+        //         for (j = i; j < client_count; j++)
+        //         {
+        //             clients[j].fd = clients[j + 1].fd;
+        //         }
+        //         client_count--;
+        //         i--;
+        //     }
+        // }
+    }
 }
