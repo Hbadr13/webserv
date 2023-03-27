@@ -59,22 +59,20 @@ int main(int argc, char **argv)
         exit(1);
     }
     // initialize clients array with listening socket]
-    std::vector <pollfd> clients(11);
-    // clients[0].
-    for (i = 0; i < MAX_CLIENTS; i++)
-    {
-        clients[i].fd = -1;
-    }
-    clients[0].fd = listen_fd;
-    clients[0].events = POLLIN | POLLOUT;
+    std::vector<pollfd> clients;
 
+    // clients[0].
+    pollfd clie;
+    clie.fd = listen_fd;
+    clie.events = POLLIN | POLLOUT;
+    clients.push_back(clie);
     int flag = 0;
     std::string message;
 
     while (true)
     {
         std::cout << "----------------\n";
-        nready = poll(clients.data(), client_count + 1, -1);
+        nready = poll(clients.data(), clients.size() + 1, -1);
         if (nready < 0)
         {
             perror("poll error");
@@ -85,35 +83,29 @@ int main(int argc, char **argv)
         if (clients[0].revents & POLLIN)
         {
             cli_len = sizeof(cli_addr);
-            conn_fd = accept(listen_fd, (struct sockaddr *)&cli_addr, &cli_len);
-            if (conn_fd < 0)
+            pollfd cfd;
+            cfd.fd = accept(listen_fd, (struct sockaddr *)&cli_addr, &cli_len);
+            if (cfd.fd < 0)
             {
                 perror("accept error");
                 continue;
             }
-            if (fcntl(conn_fd, F_SETFL, O_NONBLOCK) < 0)
+            if (fcntl(cfd.fd, F_SETFL, O_NONBLOCK) < 0)
             {
                 perror("fcntl error");
                 exit(1);
             }
-            // add new client to array
-            for (i = 1; i < MAX_CLIENTS; i++)
-            {
-                if (clients[i].fd < 0)
-                {
-                    clients[i].fd = conn_fd;
-                    clients[i].events = POLLIN;
-                    client_count++;
-                    break;
-                }
-            }
+            client_count++;
+            cfd.events = POLLIN;
+            clients.push_back(cfd);
+            std::cout << "New client connected\n";
+            flag = 1;
             if (i == MAX_CLIENTS)
             {
                 fprintf(stderr, "too many clients\n");
                 close(conn_fd);
                 continue;
             }
-
             printf("new connection from %s:%d (fd=%d)\n",
                    inet_ntoa(cli_addr.sin_addr),
                    ntohs(cli_addr.sin_port), conn_fd);
@@ -173,10 +165,12 @@ int main(int argc, char **argv)
                 msg += "hello world\n";
                 // if (send(clients[i].fd, msg.c_str(), msg.length(), 0) < 0)
                 // {
-                send(clients[i].fd, msg.c_str(), msg.length(),0 );
+                send(clients[i].fd, msg.c_str(), msg.length(), 0);
                 // perror("write error");
                 close(clients[i].fd);
-                clients[i].fd = -1;
+                // clients[i].fd = -1;
+                clients.erase(clients.begin() + i);
+                client_count--;
                 //     continue;
                 // }
                 message.clear();

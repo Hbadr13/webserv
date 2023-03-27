@@ -166,10 +166,10 @@ int Webserv::ft_accept(pollfd &tmp_fd)
             perror("fcntl error");
             exit(1);
         }
-        // Client client(_servers[tmp_fd.fd]);
+        Client client(_servers[tmp_fd.fd]);
         accepted.events = POLLIN;
         _pollfd.push_back(accepted);
-        // _clients.insert(std::make_pair(accepted.fd, client));
+        _clients.insert(std::make_pair(accepted.fd, client));
         std::cout << "connected" << std::endl;
     }
     return 0;
@@ -181,36 +181,12 @@ int Webserv::run_server()
     std::string message;
     while (Webserv::_true)
     {
-        int v = poll(_pollfd.data(), _pollfd.size() + 1, -1);
-        std::cout << _pollfd.size() << std::endl;
-        if (_pollfd[0].revents & POLLIN)
+        int v = poll(_pollfd.data(), _pollfd.size(), -1);
+        for (int i = 0; i < _pollfd.size(); i++)
         {
-            struct sockaddr_in cli_addr;
-            socklen_t cli_addr_len;
-            pollfd accepted;
-
-            cli_addr_len = sizeof(cli_addr);
-            accepted.fd = accept(_pollfd[0].fd, (struct sockaddr *)&cli_addr, &cli_addr_len);
-            if (accepted.fd == -1)
-            {
-                perror("accept error\n");
-                return -1;
-            }
-
-            if (fcntl(accepted.fd, F_SETFL, O_NONBLOCK) < 0)
-            {
-                perror("fcntl error");
-                exit(1);
-            }
-            // Client client(_servers[tmp_fd.fd]);
-            accepted.events = POLLIN;
-            _pollfd.push_back(accepted);
-            // _clients.insert(std::make_pair(accepted.fd, client));
-            std::cout << "connected" << std::endl;
-        }
-        for (int i = 1; i < _pollfd.size(); i++)
-        {
-            if (_pollfd[i].revents & POLLIN)
+            if ((_pollfd[i].revents & POLLIN) && (_servers.find(_pollfd[i].fd) != _servers.end()))
+                ft_accept(_pollfd[i]);
+            if ((_pollfd[i].revents & POLLIN) && (_clients.find(_pollfd[i].fd) != _clients.end()))
             {
                 char buf[BUFFERSIZE];
                 bzero(buf, BUFFERSIZE);
@@ -223,7 +199,7 @@ int Webserv::run_server()
                 }
                 // _clients[_pollfd[i].fd].setReuqst(buf);
             }
-            if (_pollfd[i].revents & POLLOUT)
+            if ((_pollfd[i].revents & POLLOUT) && (_clients.find(_pollfd[i].fd) != _clients.end()))
             {
                 char buf[BUFFERSIZE];
                 bzero(buf, BUFFERSIZE);
@@ -238,9 +214,6 @@ int Webserv::run_server()
                 close(_pollfd[i].fd);
                 _pollfd.erase(_pollfd.begin() + i);
                 message.clear();
-                // i = 0;
-                // exit(1);
-                // _clients.clear();
             }
         }
     }
