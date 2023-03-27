@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(8080);
+    serv_addr.sin_port = htons(9030);
 
     // bind listening socket to server address
     if (bind(listen_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
@@ -68,9 +68,10 @@ int main(int argc, char **argv)
 
     int flag = 0;
     std::string message;
-    
+
     while (true)
     {
+        std::cout << "----------------\n";
         nready = poll(clients, client_count + 1, -1);
         if (nready < 0)
         {
@@ -123,7 +124,7 @@ int main(int argc, char **argv)
             {
                 // clients[i].events = POLLIN ;
                 bzero(buf, sizeof(buf));
-                if ((n = read(clients[i].fd, buf, sizeof(buf))) < 0)
+                if ((n = recv(clients[i].fd, buf, sizeof(buf), 0)) < 0)
                 {
                     if (n == -1)
                     {
@@ -162,19 +163,20 @@ int main(int argc, char **argv)
             // in this example, we just send a "hello world" response
             if (clients[i].revents & POLLOUT)
             {
-                sprintf(buf, "HTTP/1.1 200 OK\r\n"
-                             "Content-Type: text/plain\r\n"
-                             "Content-Length: 12\r\n"
-                             "\r\n"
-                             "hello world\n");
-                n = strlen(buf);
-                if (write(clients[i].fd, buf, n) != n)
-                {
-                    // perror("write error");
-                    close(clients[i].fd);
-                    clients[i].fd = -1;
-                    continue;
-                }
+                std::string msg;
+                msg += "HTTP/1.1 200 OK\r\n";
+                msg += "Content-Type: text/plain\r\n";
+                msg += "Content-Length: 12\r\n";
+                msg += "\r\n";
+                msg += "hello world\n";
+                // if (send(clients[i].fd, msg.c_str(), msg.length(), 0) < 0)
+                // {
+                send(clients[i].fd, msg.c_str(), msg.length(),0 );
+                // perror("write error");
+                close(clients[i].fd);
+                clients[i].fd = -1;
+                //     continue;
+                // }
                 message.clear();
             }
         }

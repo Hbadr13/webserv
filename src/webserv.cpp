@@ -106,6 +106,11 @@ int Webserv::init_server()
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd == -1)
             ft_exit("0");
+        if (fcntl(sockfd, F_SETFL, O_NONBLOCK) < 0)
+        {
+            perror("fcntl error");
+            exit(1);
+        }
         // for solve problem (address already in use)
         if ((setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int))) == -1)
         {
@@ -129,12 +134,12 @@ int Webserv::init_server()
 int Webserv::setup_poollfd()
 {
     std::map<int, Configuration>::iterator it = _servers.begin();
-    pollfd fd;
 
     while (it != _servers.end())
     {
+        pollfd fd;
         fd.fd = it->first;
-        fd.events = POLLIN;
+        fd.events = POLLIN | POLLOUT;
         _pollfd.push_back(fd);
         it++;
     }
@@ -156,11 +161,16 @@ int Webserv::ft_accept(pollfd &tmp_fd)
     }
     else
     {
-        Client client(_servers[tmp_fd.fd]);
+        if (fcntl(accepted.fd, F_SETFL, O_NONBLOCK) < 0)
+        {
+            perror("fcntl error");
+            exit(1);
+        }
+        // Client client(_servers[tmp_fd.fd]);
         accepted.events = POLLIN;
         _pollfd.push_back(accepted);
-        _clients.insert(std::make_pair(accepted.fd, client));
-        std::cout << "connected" << std::endl;;
+        // _clients.insert(std::make_pair(accepted.fd, client));
+        std::cout << "connected" << std::endl;
     }
     return 0;
 }
@@ -168,20 +178,69 @@ int Webserv::ft_accept(pollfd &tmp_fd)
 int Webserv::run_server()
 {
     setup_poollfd();
+    std::string message;
     while (Webserv::_true)
     {
-        poll(&_pollfd[0], _clients.size() + 1, -1);
-        for (int i = 0; i < _pollfd.size(); i++)
+        int v = poll(_pollfd.data(), _pollfd.size() + 1, -1);
+        std::cout << _pollfd.size() << std::endl;
+        if (_pollfd[0].revents & POLLIN)
         {
-            if (_pollfd[i].events == POLLIN && _servers.find(_pollfd[i].fd) != _servers.end())
-                ft_accept(_pollfd[i]);
-            else if (_pollfd[i].events == POLLIN && _clients.find(_pollfd[i].fd) != _clients.end())
+            struct sockaddr_in cli_addr;
+            socklen_t cli_addr_len;
+            pollfd accepted;
+
+            cli_addr_len = sizeof(cli_addr);
+            accepted.fd = accept(_pollfd[0].fd, (struct sockaddr *)&cli_addr, &cli_addr_len);
+            if (accepted.fd == -1)
+            {
+                perror("accept error\n");
+                return -1;
+            }
+
+            if (fcntl(accepted.fd, F_SETFL, O_NONBLOCK) < 0)
+            {
+                perror("fcntl error");
+                exit(1);
+            }
+            // Client client(_servers[tmp_fd.fd]);
+            accepted.events = POLLIN;
+            _pollfd.push_back(accepted);
+            // _clients.insert(std::make_pair(accepted.fd, client));
+            std::cout << "connected" << std::endl;
+        }
+        for (int i = 1; i < _pollfd.size(); i++)
+        {
+            if (_pollfd[i].revents & POLLIN)
             {
                 char buf[BUFFERSIZE];
-                memset(buf, 0, BUFFERSIZE);
-                int n = read(_pollfd[i].fd, buf, BUFFERSIZE);
-                std::cout << buf << std::endl;
-                // _pollfd[i].events = POLLOUT;
+                bzero(buf, BUFFERSIZE);
+                int n = recv(_pollfd[i].fd, buf, BUFFERSIZE, 0);
+                message.append(buf, n);
+                if (message.find("\r\n\r\n") != std::string::npos)
+                {
+                    _pollfd[i].events = POLLOUT;
+                    std::cout << message << std::endl;
+                }
+                // _clients[_pollfd[i].fd].setReuqst(buf);
+            }
+            if (_pollfd[i].revents & POLLOUT)
+            {
+                char buf[BUFFERSIZE];
+                bzero(buf, BUFFERSIZE);
+                sprintf(buf, "HTTP/1.1 200 OK\r\n"
+                             "Content-Type: text/plain\r\n"
+                             "Content-Length: 12\r\n"
+                             "\r\n"
+                             "hello world\n");
+
+                int n = strlen(buf);
+                send(_pollfd[i].fd, buf, n, 0);
+                close(_pollfd[i].fd);
+                _pollfd.erase(_pollfd.begin() + i);
+                message.clear();
+                // i = 0;
+                // exit(1);
+                // _clients.clear();
             }
         }
     }

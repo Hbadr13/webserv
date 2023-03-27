@@ -1,40 +1,200 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <string.h>
+#include <errno.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <poll.h>
+#include <fcntl.h>
 #include <iostream>
+#include <vector>
+#define content_length 100
+#define MAX_CLIENTS 1000
 
-std::string read_request()
+int main(int argc, char **argv)
 {
-    std::string request;
-    request = "GET / HTTP/1.1\r\n";
-    request += "Host: localhost:8080\r\n";
-    request += "Connection: keep-alive\r\n";
-    request += "Cache-Control: max-age=0\r\n";
-    request += "sec-ch-ua: 'Not_A Brand';v='99', 'Google Chrome';v='109', 'Chromium';v='109'\r\n";
-    request += "sec-ch-ua-mobile: ?0\r\n";
-    request += "sec-ch-ua-platform: 'Linux'\r\n";
-    request += "Upgrade-Insecure-Requests: 1\r\n";
-    request += "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36\r\n";
-    request += "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\n";
-    request += "Sec-Fetch-Site: none\r\n";
-    request += "Sec-Fetch-Mode: navigate\r\n";
-    request += "Sec-Fetch-User: ?1\r\n";
-    request += "Sec-Fetch-Dest: document\r\n";
-    request += "Accept-Encoding: gzip, deflate, br\r\n";
-    request += "Accept-Language: en-US,en;q=0.9,fr-MA;q=0.8,fr;q=0.7,ar-MA;q=0.6,ar;q=0.5,en-CA;q=0.4,es-US;q=0.3,es;q=0.2\r\n";
-    request += "Cookie: SL_G_WPT_TO=en; SL_GWPT_Show_Hide_tmp=undefined; SL_wptGlobTipTmp=undefined\r\n";
-    request += "\r\n";
-    return request;
-}
+    int n;
+    int listen_fd, conn_fd, nready;
+    struct sockaddr_in serv_addr, cli_addr;
+    socklen_t cli_len;
+    char buf[content_length];
+    int i, j, client_count = 0;
 
-int main()
-{
-    std::string request = read_request();
-    // std::cout << request;
-    if (request.find("\r\n\r\n") != std::string::npos)
-        std::cout <<"yes" << std::endl;
+    // create listening socket
+    if ((listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        perror("socket error");
+        exit(1);
+    }
+    if (fcntl(listen_fd, F_SETFL, O_NONBLOCK) < 0)
+    {
+        perror("fcntl error");
+        exit(1);
+    }
+    int yes = 1;
+    if (setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &yes,
+                   sizeof(int)) == -1)
+    {
+        perror("setsockopt");
+        exit(1);
+    } // set up server address
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serv_addr.sin_port = htons(9030);
+
+    // bind listening socket to server address
+    if (bind(listen_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        perror("bind error");
+        exit(1);
+    }
+
+    // listen for incoming connections
+    if (listen(listen_fd, 10) < 0)
+    {
+        perror("listen error");
+        exit(1);
+    }
+    // initialize clients array with listening socket]
+    std::vector <pollfd> clients(11);
+    // clients[0].
+    for (i = 0; i < MAX_CLIENTS; i++)
+    {
+        clients[i].fd = -1;
+    }
+    clients[0].fd = listen_fd;
+    clients[0].events = POLLIN | POLLOUT;
+
+    int flag = 0;
+    std::string message;
+
+    while (true)
+    {
+        std::cout << "----------------\n";
+        nready = poll(clients.data(), client_count + 1, -1);
+        if (nready < 0)
+        {
+            perror("poll error");
+            continue;
+        }
+
+        // check for activity on listening socket
+        if (clients[0].revents & POLLIN)
+        {
+            cli_len = sizeof(cli_addr);
+            conn_fd = accept(listen_fd, (struct sockaddr *)&cli_addr, &cli_len);
+            if (conn_fd < 0)
+            {
+                perror("accept error");
+                continue;
+            }
+            if (fcntl(conn_fd, F_SETFL, O_NONBLOCK) < 0)
+            {
+                perror("fcntl error");
+                exit(1);
+            }
+            // add new client to array
+            for (i = 1; i < MAX_CLIENTS; i++)
+            {
+                if (clients[i].fd < 0)
+                {
+                    clients[i].fd = conn_fd;
+                    clients[i].events = POLLIN;
+                    client_count++;
+                    break;
+                }
+            }
+            if (i == MAX_CLIENTS)
+            {
+                fprintf(stderr, "too many clients\n");
+                close(conn_fd);
+                continue;
+            }
+
+            printf("new connection from %s:%d (fd=%d)\n",
+                   inet_ntoa(cli_addr.sin_addr),
+                   ntohs(cli_addr.sin_port), conn_fd);
+        }
+
+        // check for activity on client sockets
+        for (i = 1; i <= client_count; i++)
+        {
+            if (clients[i].revents & POLLIN)
+            {
+                // clients[i].events = POLLIN ;
+                bzero(buf, sizeof(buf));
+                if ((n = recv(clients[i].fd, buf, sizeof(buf), 0)) < 0)
+                {
+                    if (n == -1)
+                    {
+                        perror("read error");
+                    }
+                    continue;
+                }
+                if (n == 0)
+                {
+                    printf("client %d closed connection\n", clients[i].fd);
+                    close(clients[i].fd);
+                    clients[i].fd = -1;
+                    continue;
+                }
+                message.append(buf, n);
+                // std::cout << message;
+                // if (message.length() == 832)
+                // {
+                int j = 0;
+                // if (message.length() == 17025)
+                if (message.find("\r\n\r\n") != std::string::npos)
+                {
+                    // while (j < message.length())
+                    // {
+                    //     if (message.find("\r\n\r\n") != std::string::npos)
+                    //     {
+                    clients[i].events = POLLOUT;
+                    std::cout << message;
+                    std::cout << message.length() << std::endl;
+                    // break;
+                    //     }
+                    //     j++;
+                }
+            }
+            // process HTTP request and send response
+            // in this example, we just send a "hello world" response
+            if (clients[i].revents & POLLOUT)
+            {
+                std::string msg;
+                msg += "HTTP/1.1 200 OK\r\n";
+                msg += "Content-Type: text/plain\r\n";
+                msg += "Content-Length: 12\r\n";
+                msg += "\r\n";
+                msg += "hello world\n";
+                // if (send(clients[i].fd, msg.c_str(), msg.length(), 0) < 0)
+                // {
+                send(clients[i].fd, msg.c_str(), msg.length(),0 );
+                // perror("write error");
+                close(clients[i].fd);
+                clients[i].fd = -1;
+                //     continue;
+                // }
+                message.clear();
+            }
+        }
+
+        // remove closed client sockets from array
+        // for (i = 1; i <= client_count; i++)
+        // {
+        //     if (clients[i].fd < 0)
+        //     {
+        //         for (j = i; j < client_count; j++)
+        //         {
+        //             clients[j].fd = clients[j + 1].fd;
+        //         }
+        //         client_count--;
+        //         i--;
+        //     }
+        // }
+    }
 }
