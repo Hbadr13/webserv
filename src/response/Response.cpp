@@ -141,6 +141,7 @@ std::string int_to_string(int numb)
 
 std ::string chec_url(std ::string urll)
 {
+    std::cout<<"url: "<<urll<<std::endl;
     int i = 0;
     int j = 0;
     std ::string result;
@@ -198,7 +199,7 @@ std::pair<Location, std::string> find_location(std::string url, Configuration co
 Response::Response(Prasing_Request rq, Configuration conf_serv)
 {
 
-    // std::cout << "url = " << rq.get_url() << std::endl;
+    std::cout << "url = " << rq.get_url() << std::endl;
     std::pair<Location, std::string> location_and_url = find_location(rq.get_url(), conf_serv);
     // std::cout << "-->"<<rq.get_mymap()["Cookie"]<<std::endl;
 
@@ -379,7 +380,7 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
         }
         else if (dir != NULL)
         {
-            std :: cout << "ssssssssssssssssssssss\n";
+            // std :: cout << "ssssssssssssssssssssss\n";
             std ::string bady;
             std ::string msg;
             bady.append("HTTP/1.1 ");

@@ -70,7 +70,7 @@ std ::vector<std ::string> split(std::string str, std::string delimiter)
 
 void Prasing_Request::prasing_headr(std ::string headrs)
 {
-    std::cout<<"prasing_headr "<<headrs<<std::endl;
+    // std::cout<<"prasing_headr "<<headrs<<std::endl;
     std ::vector<std ::string> res = split(headrs, "\r\n");
     for (int i = 0; i < res.size(); i++)
     {

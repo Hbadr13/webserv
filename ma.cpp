@@ -12,7 +12,7 @@
 #include <vector>
 #define content_length 100
 #define MAX_CLIENTS 1000
-
+#include <map>
 int main(int argc, char **argv)
 {
     int n;
@@ -44,21 +44,16 @@ int main(int argc, char **argv)
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     serv_addr.sin_port = htons(9030);
-
-    // bind listening socket to server address
     if (bind(listen_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
         perror("bind error");
         exit(1);
     }
-
-    // listen for incoming connections
     if (listen(listen_fd, 10) < 0)
     {
         perror("listen error");
         exit(1);
     }
-    // initialize clients array with listening socket]
     std::vector<pollfd> clients;
 
     // clients[0].
@@ -68,18 +63,20 @@ int main(int argc, char **argv)
     clients.push_back(clie);
     int flag = 0;
     std::string message;
-
+    std::map<int, std::string> clit;
     while (true)
     {
+
         std::cout << "----------------\n";
-        nready = poll(clients.data(), clients.size() + 1, -1);
+        for (std::map<int, std::string>::iterator it = clit.begin(); it != clit.end(); it++)
+            std::cout << it->first << " ";
+        std::cout << "\n";
+        nready = poll(clients.data(), clients.size(), -1);
         if (nready < 0)
         {
             perror("poll error");
             continue;
         }
-
-        // check for activity on listening socket
         if (clients[0].revents & POLLIN)
         {
             cli_len = sizeof(cli_addr);
@@ -95,8 +92,8 @@ int main(int argc, char **argv)
                 perror("fcntl error");
                 exit(1);
             }
-            client_count++;
             cfd.events = POLLIN;
+            clit.insert(std::make_pair(cfd.fd, "config"));
             clients.push_back(cfd);
             std::cout << "New client connected\n";
             flag = 1;
@@ -106,17 +103,11 @@ int main(int argc, char **argv)
                 close(conn_fd);
                 continue;
             }
-            printf("new connection from %s:%d (fd=%d)\n",
-                   inet_ntoa(cli_addr.sin_addr),
-                   ntohs(cli_addr.sin_port), conn_fd);
         }
-
-        // check for activity on client sockets
         for (i = 1; i <= client_count; i++)
         {
             if (clients[i].revents & POLLIN)
             {
-                // clients[i].events = POLLIN ;
                 bzero(buf, sizeof(buf));
                 if ((n = recv(clients[i].fd, buf, sizeof(buf), 0)) < 0)
                 {
@@ -134,27 +125,14 @@ int main(int argc, char **argv)
                     continue;
                 }
                 message.append(buf, n);
-                // std::cout << message;
-                // if (message.length() == 832)
-                // {
                 int j = 0;
-                // if (message.length() == 17025)
                 if (message.find("\r\n\r\n") != std::string::npos)
                 {
-                    // while (j < message.length())
-                    // {
-                    //     if (message.find("\r\n\r\n") != std::string::npos)
-                    //     {
                     clients[i].events = POLLOUT;
                     std::cout << message;
                     std::cout << message.length() << std::endl;
-                    // break;
-                    //     }
-                    //     j++;
                 }
             }
-            // process HTTP request and send response
-            // in this example, we just send a "hello world" response
             if (clients[i].revents & POLLOUT)
             {
                 std::string msg;
@@ -162,33 +140,33 @@ int main(int argc, char **argv)
                 msg += "Content-Type: text/plain\r\n";
                 msg += "Content-Length: 12\r\n";
                 msg += "\r\n";
-                msg += "hello world\n";
-                // if (send(clients[i].fd, msg.c_str(), msg.length(), 0) < 0)
-                // {
+                time_t tm = time(NULL);
+                if (tm % 2)
+                    msg += "hello world\n";
+
+                else
+                    msg += "waxch khadm\n";
                 send(clients[i].fd, msg.c_str(), msg.length(), 0);
-                // perror("write error");
                 close(clients[i].fd);
-                // clients[i].fd = -1;
                 clients.erase(clients.begin() + i);
+                clit.erase(clit.find(clients[i].fd));
                 client_count--;
-                //     continue;
-                // }
                 message.clear();
             }
         }
-
-        // remove closed client sockets from array
-        // for (i = 1; i <= client_count; i++)
-        // {
-        //     if (clients[i].fd < 0)
-        //     {
-        //         for (j = i; j < client_count; j++)
-        //         {
-        //             clients[j].fd = clients[j + 1].fd;
-        //         }
-        //         client_count--;
-        //         i--;
-        //     }
-        // }
     }
 }
+
+// remove closed client sockets from array
+// for (i = 1; i <= client_count; i++)
+// {
+//     if (clients[i].fd < 0)
+//     {
+//         for (j = i; j < client_count; j++)
+//         {
+//             clients[j].fd = clients[j + 1].fd;
+//         }
+//         client_count--;
+//         i--;
+//     }
+// }

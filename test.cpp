@@ -71,8 +71,8 @@ int main(int argc, char **argv)
 
     while (true)
     {
-        std::cout << "----------------\n";
         nready = poll(clients, client_count + 1, -1);
+        std::cout << "----------------\n";
         if (nready < 0)
         {
             perror("poll error");
@@ -168,10 +168,16 @@ int main(int argc, char **argv)
                 msg += "Content-Type: text/plain\r\n";
                 msg += "Content-Length: 12\r\n";
                 msg += "\r\n";
-                msg += "hello world\n";
+                time_t tm = time(NULL);
+                if (tm % 2)
+                    msg += "hello world\n";
+
+                else
+                    msg += "waxch khadm\n";
+                std::cout << tm << std::endl;
                 // if (send(clients[i].fd, msg.c_str(), msg.length(), 0) < 0)
                 // {
-                send(clients[i].fd, msg.c_str(), msg.length(),0 );
+                send(clients[i].fd, msg.c_str(), msg.length(), 0);
                 // perror("write error");
                 close(clients[i].fd);
                 clients[i].fd = -1;

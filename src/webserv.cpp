@@ -139,12 +139,14 @@ int Webserv::setup_poollfd()
     {
         pollfd fd;
         fd.fd = it->first;
-        fd.events = POLLIN | POLLOUT;
+        fd.events = POLLIN | POLLOUT | POLLHUP;
         _pollfd.push_back(fd);
         it++;
     }
     return 0;
 }
+int g;
+std::map<int, std::string> clit;
 
 int Webserv::ft_accept(pollfd &tmp_fd)
 {
@@ -154,6 +156,7 @@ int Webserv::ft_accept(pollfd &tmp_fd)
 
     cli_addr_len = sizeof(cli_addr);
     accepted.fd = accept(tmp_fd.fd, (struct sockaddr *)&cli_addr, &cli_addr_len);
+    std::cout << ":::::> " << accepted.fd << std::endl;
     if (accepted.fd == -1)
     {
         perror("accept error\n");
@@ -166,63 +169,141 @@ int Webserv::ft_accept(pollfd &tmp_fd)
             perror("fcntl error");
             exit(1);
         }
-        Client client(_servers[tmp_fd.fd]);
         accepted.events = POLLIN;
+        Client *client = new Client(_servers[tmp_fd.fd]);
+
+        client->plfd = accepted;
+        client->global = g++;
+
+        _vect.push_back(client);
+        for (int i = 0; i < _vect.size(); i++)
+            std::cout << _vect[i]->global << "|";
+        std::cout << std::endl;
         _pollfd.push_back(accepted);
-        _clients.insert(std::make_pair(accepted.fd, client));
-        std::cout << "connected" << std::endl;
     }
     return 0;
 }
 
-std::string message;
-int Webserv::ft_recv(pollfd &tmp_fd)
+int Webserv::ft_recv(pollfd &tmp_fd, int j)
 {
     char buf[BUFFERSIZE];
     bzero(buf, BUFFERSIZE);
     int n = recv(tmp_fd.fd, buf, BUFFERSIZE, 0);
-    _clients[tmp_fd.fd].setReuqst(buf);
-    _clients[tmp_fd.fd].find_request_eof();
-    if (_clients[tmp_fd.fd].getEof() == true)
+    if (n == 0)
     {
-
-        std::cout << _clients[tmp_fd.fd].getReuqst() << std::endl;
-        std::cout << _clients[tmp_fd.fd].getReuqst().length() << std::endl;
-        tmp_fd.events = POLLOUT;
+        printf("client %d closed connection\n", tmp_fd.fd);
+        close(tmp_fd.fd);
+        tmp_fd.fd = -1;
+        return 1;
     }
-    _clients[tmp_fd.fd].setReadyToRecv(true);
+    _vect[j]->setReuqst(buf);
+    _vect[j]->find_request_eof();
+    // std::cout << _vect[j]->getReuqst() << std::endl;
+    if (_vect[j]->getEof() == true)
+    {
+        tmp_fd.events = POLLOUT;
+        std::cout << _vect[j]->getReuqst() << std::endl;
+        // std::cout << "================================================================" << std::endl;
+        Prasing_Request prs_reqst(_vect[j]->getReuqst());
+        _vect[j]->setParsingRequest(prs_reqst);
+        Response response(prs_reqst, _vect[j]->getConfiguration());
+        _vect[j]->setResponse(response);
+        _vect[j]->setMessage(_vect[j]->getResponse().get_respons(), 0);
+
+        // std::cout << _clients[tmp_fd.fd].getMessage() << std::endl;
+        // std::cout<<_clients[tmp_fd.fd].getConfiguration().getlisten()<<std::endl;
+    }
     return 0;
-    // _clients[_pollfd[i].fd].setReuqst(buf);
 }
+int Webserv::ft_send(pollfd tmp_fd, int index)
+{
+    char buf[BUFFERSIZE];
+    bzero(buf, BUFFERSIZE);
+    sprintf(buf, "HTTP/1.1 200 OK\r\n"
+                 "Content-Type: text/plain\r\n"
+                 "Content-Length: 12\r\n"
+                 "\r\n"
+                 "hello world\n");
+    int n = strlen(buf);
+    send(tmp_fd.fd, buf, n, 0);
+    // std::cout << "||||||" << n << "||" << _clients[tmp_fd.fd].getResponse().get_respons().size() << std::endl;
+    // n = send(tmp_fd.fd, _clients[tmp_fd.fd].getMessage().c_str(), _clients[tmp_fd.fd].getMessage().size(), 0);
+    // _clients[tmp_fd.fd].setMessage(_clients[tmp_fd.fd].getMessage(), n);
+    // if (_clients[tmp_fd.fd].getMessage().empty())
+    // {
+    // close(tmp_fd.fd);
+    _pollfd.erase(_pollfd.begin() + index);
+    // _clients.erase(_clients.find(_pollfd[index].fd));
+    // }
+    return 0;
+}
+
 int Webserv::run_server()
 {
     setup_poollfd();
-    message = "";
+    g = 0;
     while (Webserv::_true)
     {
-        int v = poll(_pollfd.data(), _pollfd.size(), -1);
-        for (int i = 0; i < _pollfd.size(); i++)
-        {
-            if ((_pollfd[i].revents & POLLIN) && (_servers.find(_pollfd[i].fd) != _servers.end()))
-                ft_accept(_pollfd[i]);
-            if ((_pollfd[i].revents & POLLIN) && (_clients.find(_pollfd[i].fd) != _clients.end()))
-                ft_recv(_pollfd[i]);
-            if ((_pollfd[i].revents & POLLOUT) && (_clients.find(_pollfd[i].fd) != _clients.end()))
-            {
-                char buf[BUFFERSIZE];
-                bzero(buf, BUFFERSIZE);
-                sprintf(buf, "HTTP/1.1 200 OK\r\n"
-                             "Content-Type: text/plain\r\n"
-                             "Content-Length: 12\r\n"
-                             "\r\n"
-                             "hello world\n");
 
-                int n = strlen(buf);
-                send(_pollfd[i].fd, buf, n, 0);
-                close(_pollfd[i].fd);
-                _pollfd.erase(_pollfd.begin() + i);
-                _clients.erase(_clients.find(_pollfd[i].fd));
-                // message.clear();
+        std::cout << "----------------\n";
+        std::cout << std::endl;
+        int v = poll(_pollfd.data(), _pollfd.size(), -1);
+
+        if ((_pollfd[0].revents & POLLIN) && (_servers.find(_pollfd[0].fd) != _servers.end()))
+            ft_accept(_pollfd[0]);
+        for (int i = 1; i < _pollfd.size(); i++)
+        {
+            if ((_pollfd[i].revents & POLLIN))
+            {
+                for (int j = 0; j < _vect.size(); j++)
+                {
+                    if (_vect[j]->plfd.fd == _pollfd[i].fd)
+                        ft_recv(_pollfd[i], j);
+                }
+            }
+            if ((_pollfd[i].revents & POLLOUT))
+            {
+
+                for (int j = 0; j < _vect.size(); j++)
+                {
+                    if (_vect[j]->plfd.fd == _pollfd[i].fd)
+                    {
+                        //     ft_recv(_pollfd[i], j);
+
+                        std::string msg;
+                        msg += "HTTP/1.1 200 OK\r\n";
+                        msg += "Content-Type: text/plain\r\n";
+                        msg += "Content-Length: 12\r\n";
+                        msg += "\r\n";
+                        time_t tm = time(NULL);
+                        if (tm % 2)
+                            msg += "hello world\n";
+                        else
+                            msg += "waxch khadm\n";
+                        // send(_pollfd[i].fd, msg.c_str(), msg.size(), 0);
+                        // std::cout << "||||||" << n << "||" << _clients[tmp_fd.fd].getResponse().get_respons().size() << std::endl;
+                        int n = send(_pollfd[i].fd, _vect[j]->getMessage().c_str(), _vect[j]->getMessage().size(), 0);
+                        std::cout << _vect[j]->getMessage();
+                        _vect[j]->setMessage(_vect[j]->getMessage(), n);
+                        if (_vect[j]->getMessage().empty())
+                        {
+                            //     // std::cout << "\n\n\n==>" << _clients[i].global << "\n\n";
+
+                            close(_pollfd[i].fd);
+                            _pollfd.erase(_pollfd.begin() + i);
+                            _vect.erase(_vect.begin() + j);
+
+                            //     // if (_clients.find(_poll.[i].fd) != _clients.end())
+                            //     //     ;
+                            //     // _clients.erase(_cli.ts.find(_poll.[i].fd));
+                            //     // clit.erase(clit.find(_pollfd[i].fd));
+
+                            //     // std::cout << _pollfd.size() << "======================" << std::endl;
+
+                            //     // i--;
+                        }
+                    }
+                }
             }
         }
     }
@@ -250,3 +331,5 @@ std::string cleaning_input(std::string str)
     }
     return dst;
 }
+
+
