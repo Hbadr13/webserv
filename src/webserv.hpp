@@ -42,6 +42,7 @@ public:
     int init_server();
     int run_server();
     int ft_accept(pollfd &tmp_fd);
+    int ft_recv(pollfd &tmp_fd);
     static int server_run()
     {
         return true;

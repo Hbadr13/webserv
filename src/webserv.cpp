@@ -175,10 +175,29 @@ int Webserv::ft_accept(pollfd &tmp_fd)
     return 0;
 }
 
+std::string message;
+int Webserv::ft_recv(pollfd &tmp_fd)
+{
+    char buf[BUFFERSIZE];
+    bzero(buf, BUFFERSIZE);
+    int n = recv(tmp_fd.fd, buf, BUFFERSIZE, 0);
+    _clients[tmp_fd.fd].setReuqst(buf);
+    _clients[tmp_fd.fd].find_request_eof();
+    if (_clients[tmp_fd.fd].getEof() == true)
+    {
+
+        std::cout << _clients[tmp_fd.fd].getReuqst() << std::endl;
+        std::cout << _clients[tmp_fd.fd].getReuqst().length() << std::endl;
+        tmp_fd.events = POLLOUT;
+    }
+    _clients[tmp_fd.fd].setReadyToRecv(true);
+    return 0;
+    // _clients[_pollfd[i].fd].setReuqst(buf);
+}
 int Webserv::run_server()
 {
     setup_poollfd();
-    std::string message;
+    message = "";
     while (Webserv::_true)
     {
         int v = poll(_pollfd.data(), _pollfd.size(), -1);
@@ -187,18 +206,7 @@ int Webserv::run_server()
             if ((_pollfd[i].revents & POLLIN) && (_servers.find(_pollfd[i].fd) != _servers.end()))
                 ft_accept(_pollfd[i]);
             if ((_pollfd[i].revents & POLLIN) && (_clients.find(_pollfd[i].fd) != _clients.end()))
-            {
-                char buf[BUFFERSIZE];
-                bzero(buf, BUFFERSIZE);
-                int n = recv(_pollfd[i].fd, buf, BUFFERSIZE, 0);
-                message.append(buf, n);
-                if (message.find("\r\n\r\n") != std::string::npos)
-                {
-                    _pollfd[i].events = POLLOUT;
-                    std::cout << message << std::endl;
-                }
-                // _clients[_pollfd[i].fd].setReuqst(buf);
-            }
+                ft_recv(_pollfd[i]);
             if ((_pollfd[i].revents & POLLOUT) && (_clients.find(_pollfd[i].fd) != _clients.end()))
             {
                 char buf[BUFFERSIZE];
@@ -213,7 +221,8 @@ int Webserv::run_server()
                 send(_pollfd[i].fd, buf, n, 0);
                 close(_pollfd[i].fd);
                 _pollfd.erase(_pollfd.begin() + i);
-                message.clear();
+                _clients.erase(_clients.find(_pollfd[i].fd));
+                // message.clear();
             }
         }
     }
