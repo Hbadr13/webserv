@@ -6,7 +6,6 @@
 //    define variables //
 #define BUFFERSIZE 40000
 
-
 // -------  cpp -----//
 #include <iostream>
 #include <fstream>
@@ -28,28 +27,25 @@
 class Webserv
 {
 private:
-
     static const int _true = true;
     std::vector<pollfd> _pollfd;
     std::vector<Configuration> _confgs;
     std::map<int, Configuration> _servers;
-    std::map<int, Client> _clients;
-    std::vector<Client *> _vect;
+    std::vector<Client *> _clients;
 
 public:
-
     std::map<int, Client *> moch;
     std::vector<pollfd> &get_Pollfd();
     std::vector<Configuration> &get_Confgs();
     std::map<int, Configuration> &get_Servers();
-    std::map<int, Client> &get_Clients();
+    std::vector<Client*> &get_Clients();
     //---->  memeber  fuction <---\\.
     int setup_poollfd();
     int init_server();
     int run_server();
     int ft_accept(pollfd &tmp_fd);
     int ft_recv(pollfd &tmp_fd, int j);
-    int ft_send(pollfd tmp_fd, int index);
+    int ft_send(pollfd &tmp_fd, int i, int j);
 
     static int server_run()
     {

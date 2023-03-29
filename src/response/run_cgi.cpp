@@ -26,10 +26,7 @@ void free_tab(char **envp)
     }
     free(envp);
 }
-int ft_exitt(std::string &res)
-{
-    return 1;
-}
+
 
 char **get_env_form_map(std::map<std::string, std::string> &map_env)
 {
@@ -49,7 +46,6 @@ char **get_env_form_map(std::map<std::string, std::string> &map_env)
         i++;
     }
     envp[i] = NULL;
-
     return envp;
 }
 
@@ -92,6 +88,7 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     std::string status;
     std::string root;
     std::string path;
+    int status_exec;
     std::string url;
     char **envp;
     char **av;
@@ -135,7 +132,6 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     av[1] = strdup((path + "").c_str());
     av[2] = NULL;
     int fd_execute = open(path.c_str(), O_RDONLY);
-    int status_exec;
     if (fd_execute < 0)
     {
         this->respons = "HTTP/1.1 404 not found\n\n";
@@ -182,10 +178,11 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
             throw std::string("ERROR CGI: error in execve");
         }
     }
-    this->respons = "HTTP/1.0 200\n";
+    this->respons = "HTTP/1.0 200\r\n";
     this->respons += ft_read("www/trash/trash.txt");
     std::cout << "done" << std::endl;
     free_tab(envp);
+    std::cout << this->respons << std::endl;
     unlink("www/trash/trash.txt");
     return 1;
 }

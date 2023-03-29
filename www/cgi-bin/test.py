@@ -1,4 +1,5 @@
-print("Content_type: text/html\n\n")
+print("Content_type: text/html\r\n")
+print("\r\n")
 print("<html>")
 print("<head>")
 print("    <title>pytest</title>")
