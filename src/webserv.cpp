@@ -1,9 +1,6 @@
 #include "webserv.hpp"
 #include "../src/response/Response.hpp"
 
-/////////////////////////////////////
-//      destructor constructor
-/////////////////////////////////////
 Webserv::Webserv()
 {
 }
@@ -50,6 +47,7 @@ Webserv::Webserv(char *path)
         else if (i == config.size() - 1)
         {
             Configuration c(cnf);
+
             _confgs.push_back(c);
             cnf.clear();
             break;
@@ -58,14 +56,12 @@ Webserv::Webserv(char *path)
             flag = 1;
         i++;
     }
+
 }
 Webserv::~Webserv()
 {
-}
 
-/////////////////////////////////////
-//      getters and setters
-/////////////////////////////////////
+}
 std::vector<struct pollfd> &Webserv::get_Pollfd()
 {
     return _pollfd;
@@ -79,14 +75,10 @@ std::map<int, Configuration> &Webserv::get_Servers()
 {
     return _servers;
 }
-std::vector<Client*> &Webserv::get_Clients()
+std::vector<Client *> &Webserv::get_Clients()
 {
     return _clients;
 }
-
-//////////////////////////////////////////
-//      member function                 //
-//////////////////////////////////////////
 
 int ft_exit(std::string a)
 {
@@ -158,7 +150,7 @@ int Webserv::ft_accept(pollfd &tmp_fd)
     accepted.fd = accept(tmp_fd.fd, (struct sockaddr *)&cli_addr, &cli_addr_len);
     if (accepted.fd == -1)
     {
-        std::cout <<"I can't handling this connection from port: "<<_servers[tmp_fd.fd].getlisten() << std::endl;
+        std::cout << "I can't handling this connection from port: " << _servers[tmp_fd.fd].getlisten() << std::endl;
         return -1;
     }
     else
@@ -204,9 +196,11 @@ int Webserv::ft_recv(pollfd &tmp_fd, int j)
     }
     return 0;
 }
-int Webserv::ft_send(pollfd &tmp_fd,int i, int j)
+int Webserv::ft_send(pollfd &tmp_fd, int i, int j)
 {
     int n = send(tmp_fd.fd, _clients[j]->getMessage().c_str(), _clients[j]->getMessage().size(), 0);
+        std::cout<<"----------1\n";
+    std::cout<<"----------2\n";
     _clients[j]->setMessage(_clients[j]->getMessage(), n);
     if (_clients[j]->getMessage().empty())
     {
@@ -219,15 +213,20 @@ int Webserv::ft_send(pollfd &tmp_fd,int i, int j)
 
 int Webserv::run_server()
 {
+    int i; 
     int return_poll;
     setup_poollfd();
     while (Webserv::_true)
     {
+        i = 0;
         return_poll = poll(_pollfd.data(), _pollfd.size(), -1);
-
-        if ((_pollfd[0].revents & POLLIN) && (_servers.find(_pollfd[0].fd) != _servers.end()))
-            ft_accept(_pollfd[0]);
-        for (int i = 1; i < _pollfd.size(); i++)
+        while(i < _servers.size())
+        {
+            if ((_pollfd[i].revents & POLLIN) && (_servers.find(_pollfd[i].fd) != _servers.end()))
+                ft_accept(_pollfd[i]);
+            i++;
+        }
+        while (i < _pollfd.size())
         {
             if ((_pollfd[i].revents & POLLIN))
             {
@@ -245,12 +244,12 @@ int Webserv::run_server()
                         ft_send(_pollfd[i], i, j);
                 }
             }
+            i++; 
         }
     }
     return 0;
 }
 
-/////////////////////////////////////////////// configiration //////////////////////////////
 std::string cleaning_input(std::string str)
 {
     std::string dst;

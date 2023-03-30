@@ -1,14 +1,4 @@
 #include "Configuration.hpp"
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-//  _________   _____    ____  ____  _____     ______   _________   _____     ____    ____  _____  //
-// |_   ___  | |_   _|  |_   ||_   \|_   _|  .' ___  | |  _   _  | |_   _|  .'    `. |_   \|_   _| //
-//   | |_  \_|   | |      | |   |   \ | |   / .'   \_| |_/ | | \_|   | |   /  .--.  \  |   \ | |   //
-//   |  _|       | '      ' |   | |\ \| |   | |            | |       | |   | |    | |  | |\ \| |   //
-//  _| |_         \ `-----'/   _| |_\   |_  \ `.___.'\    _| |_     _| |_  \  `--'  / _| |_\   |_  //
-// |_____|         `.____.'   |_____|\____|  `._____.'   |_____|   |_____|  `.____.' |_____|\____| //
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void print_config(std::vector<std::pair<std::string, std::vector<std::string> > > config_variable, std::vector<std::pair<std::string, std::vector<std::pair<std::string, std::vector<std::string> > > > > locations)
 {
     int i = 0;
@@ -37,20 +27,56 @@ void print_config(std::vector<std::pair<std::string, std::vector<std::string> > 
     }
 }
 
-
 void error_conf(int status)
 {
-    std::cout << "error " << status << ": configiuration file : syntex error\n";
+    std::cout<<"    [Example  About The Configuration File Valid]"<<std::endl;
+    std::cout<<""<<std::endl;
+    std::cout<<""<<std::endl;
+    std::cout<<"server{"<<std::endl;
+    std::cout<<"    root www;"<<std::endl;
+    std::cout<<"    listen 9090;"<<std::endl;
+    std::cout<<"    host localhost;"<<std::endl;
+    std::cout<<"    index error.html;"<<std::endl;
+    std::cout<<"    limit_client_body_size 500;"<<std::endl;
+    std::cout<<""<<std::endl;
+    std::cout<<"    location / {"<<std::endl;
+    std::cout<<"        allow_methods  HEAD POST DELETE;"<<std::endl;
+    std::cout<<"        root www;"<<std::endl;
+    std::cout<<"        index index.html;"<<std::endl;
+    std::cout<<"        autoindex off;"<<std::endl;
+    std::cout<<"    }"<<std::endl;
+    std::cout<<""<<std::endl;
+    std::cout<<"    location /upload{"<<std::endl;
+    std::cout<<"      index index.html;"<<std::endl;
+    std::cout<<"    }"<<std::endl;
+    std::cout<<""<<std::endl;
+    std::cout<<"    location /cgi-bin {"<<std::endl;
+    std::cout<<"        allow_methods  HEAD POST;"<<std::endl;
+    std::cout<<"        root www/;"<<std::endl;
+    std::cout<<"        autoindex off;"<<std::endl;
+    std::cout<<"        index index.py index.php;"<<std::endl;
+    std::cout<<"        cgi_execute .py .php;"<<std::endl;
+    std::cout<<"        limit_client_body_size 500;"<<std::endl;
+    std::cout<<"    }"<<std::endl;
+    std::cout<<"}"<<std::endl;
     exit(1);
 }
 
 int Configuration::handling_bracket()
 {
-    int i = -1;
+    int i = 0;
+
     std::vector<std::string> bracket;
-    while (++i < this->config.size())
+    if(this->config.size() < 4)
+            error_conf(-1);
+    while (i < this->config.size())
+    {
         if (!this->config[i].compare("{") || !this->config[i].compare("}"))
             bracket.push_back(this->config[i]);
+        i++;
+    }
+    if(bracket.size() < 4)
+        error_conf(10);
     if (bracket[0].compare("{") || bracket[1].compare("{"))
         error_conf(4);
     if (bracket[bracket.size() - 1].compare("}") || !this->config[bracket.size() - 2].compare("}"))

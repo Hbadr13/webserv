@@ -95,22 +95,28 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     int fd;
 
     av = (char **)malloc(sizeof(char *) * 3);
-    if (0)
+    if (requst.get_method().compare("POST") && requst.get_method().compare("GET"))
     {
-        this->respons = "HTTP/1.1 405 Method Not Allowed\n\n";
+        this->respons = "HTTP/1.1 405 Method Not Allowed\r\n";
+        this->respons += "content-type: text/html\r\n";
+        this->respons += "\r\n";
         this->respons += ft_read("www/error/error404.html");
         throw std::string("ERROR CGI: Method Not Allowed");
     }
     if (av == NULL)
     {
-        this->respons = "HTTP/1.1 503 Service Unavailable\n\n";
+        this->respons = "HTTP/1.1 503 Service Unavailable\r\n";
+        this->respons += "content-type: text/html\r\n";
+        this->respons += "\r\n";
         this->respons += ft_read("www/error/error404.html");
         throw std::string("ERROR CGI: malloc");
     }
     url = parsing_url(requst.get_url());
     if (location.getroot().empty() && conf_serv.getroot().empty())
     {
-        this->respons = "HTTP/1.1 403 Forbidden\n\n";
+        this->respons = "HTTP/1.1 403 Forbidden\r\n";
+        this->respons += "content-type: text/html\r\n";
+        this->respons += "\r\n";
         this->respons += ft_read("www/error/error404.html");
         throw std::string("ERROR CGI: root not found");
     }
@@ -121,7 +127,9 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     std::cout << "path =" << path << std::endl;
     if (path.compare(path.length() - 3, 3, ".py") && path.compare(path.length() - 4, 4, ".php"))
     {
-        this->respons = "HTTP/1.1 403 Forbidden\n\n";
+        this->respons = "HTTP/1.1 403 Forbidden\r\n";
+        this->respons += "content-type: text/html\r\n";
+        this->respons += "\r\n";
         this->respons += ft_read("www/error/error404.html");
         this->respons += "403";
         throw std::string("ERROR CGI: may cgi works with code python only");
@@ -142,7 +150,9 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     int fd_execute = open(path.c_str(), O_RDONLY);
     if (fd_execute < 0)
     {
-        this->respons = "HTTP/1.1 404 not found\n\n";
+        this->respons = "HTTP/1.1 404 not found\r\n";
+        this->respons += "content-type: text/html\r\n";
+        this->respons += "\r\n";
         this->respons += ft_read("www/error/error404.html");
         this->respons += "404";
         throw std::string("ERROR CGI: path not found {" + path + "}");
@@ -151,7 +161,9 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     fd = open("www/trash/trash.txt", O_WRONLY | O_TRUNC);
     if (fd < 0)
     {
-        this->respons = "HTTP/1.1 500 Internal Server Error\n\n";
+        this->respons = "HTTP/1.1 500 Internal Server Error\r\n";
+        this->respons += "content-type: text/html\r\n";
+        this->respons += "\r\n";
         this->respons += ft_read("www/error/error404.html");
         this->respons += "500";
         throw std::string("ERROR CGI: www/trash/trash.txt not found");
@@ -160,7 +172,9 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     pid = fork();
     if (pid == -1)
     {
-        this->respons = "HTTP/1.1 500 Internal Server Error\n\n";
+        this->respons = "HTTP/1.1 500 Internal Server Error\r\n";
+        this->respons += "content-type: text/html\r\n";
+        this->respons += "\r\n";
         this->respons += ft_read("www/error/error404.html");
         this->respons += "500";
         throw std::string("ERROR CGI: problem in fork");
@@ -178,9 +192,11 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         close(fd_execute);
         if (status_exec)
         {
-            this->respons = "HTTP/1.1 500 Internal Server Error\n\n";
+            this->respons = "HTTP/1.1 501 Not Implemented\r\n";
+            this->respons += "content-type: text/html\r\n";
+            this->respons += "\r\n";
             this->respons += ft_read("www/error/error404.html");
-            this->respons += "500";
+            this->respons += "501";
             free_tab(envp);
             unlink("www/trash/trash.txt");
             throw std::string("ERROR CGI: error in execve");
@@ -188,7 +204,6 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     }
     this->respons = "HTTP/1.0 200\r\n";
     this->respons += ft_read("www/trash/trash.txt");
-    std::cout << "done" << std::endl;
     free_tab(envp);
     std::cout << this->respons << std::endl;
     unlink("www/trash/trash.txt");

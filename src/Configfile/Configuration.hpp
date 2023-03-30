@@ -21,12 +21,8 @@ private:
     std::vector<std::string> server_names;
     std::map<std::string, std::map<std::string, std::vector<std::string> > > locations;
     std::map<std::string, std::string> test;
-public:
-    std::map<std::string ,std::string> gettest()
-    {
-        return this->test;
-    }
     std::map<std::string, std::vector<std::string> > config_variable;
+public:
     Configuration(std::vector<std::string> &vect_conf);
     Configuration();
     void parsing_Config_file();
