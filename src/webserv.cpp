@@ -198,9 +198,9 @@ int Webserv::ft_recv(pollfd &tmp_fd, int j)
 }
 int Webserv::ft_send(pollfd &tmp_fd, int i, int j)
 {
+    std::cout<<_clients[j]->getMessage();
     int n = send(tmp_fd.fd, _clients[j]->getMessage().c_str(), _clients[j]->getMessage().size(), 0);
-        std::cout<<"----------1\n";
-    std::cout<<"----------2\n";
+    // std::cout<<"----------2\n";
     _clients[j]->setMessage(_clients[j]->getMessage(), n);
     if (_clients[j]->getMessage().empty())
     {

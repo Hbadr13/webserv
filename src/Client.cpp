@@ -48,11 +48,12 @@ std::string &Client::getMessage()
 }
 void Client::setMessage(std::string value, int size)
 {
-    if (!_message.empty())
+    if (size < 0)
+        return ;
     // exit(1);
     {
+        std::cout << size << "|" << value.length() << "|" << size << std::endl;
         _message = value.substr(size, value.length() - size);
-        std::cout << _message << std::endl;
     }
 }
 

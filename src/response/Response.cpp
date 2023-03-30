@@ -1,10 +1,8 @@
-
 #include "Response.hpp"
 #include <ctime>
 #include <fstream>
 #include <filesystem>
 #include <dirent.h>
-#include <bits/stdc++.h>
 
 #include <iostream>
 
@@ -184,7 +182,9 @@ std::pair<Location, std::string> find_location(std::string url, Configuration co
         {
             if (!it->first.compare(url_check))
             {
+                // Location l()
                 Location location(conf_serv, it->first);
+                // std::cout << it->first << std::endl;
                 return std::pair<Location, std::string>(location, it->first);
             }
             it++;
@@ -194,93 +194,30 @@ std::pair<Location, std::string> find_location(std::string url, Configuration co
     }
     return std::pair<Location, std::string>(Location(), std::string());
 }
-std ::string status_delete(int status, std ::string str)
-{
-    std ::string bady;
-    std ::string url3 = "error/" + int_to_string(status) + ".html";
-    int d = open(url3.c_str(), O_RDWR);
-    if (d == -1)
-        return (NULL);
-    time_t now = time(0);
-    char *time = ctime(&now);
-    std::ifstream file(url3.c_str());
-    std::string http;
-    if (file)
-    {
-        std::ostringstream str;
-        str << file.rdbuf();
-        http = str.str();
-    }
-    bady.append("HTTP/1.1 ");
-    bady.append(int_to_string(status));
-    bady.append(" ");
-    bady.append(str);
-    bady.append("\nServer: Server\nDate: ");
-    bady.append(time);
-    bady.append("Content-Type: text/html\nContent-Length: ");
-    int len = http.length();
-    bady.append(int_to_string(len));
-    bady.append("\n\n");
-    bady.append(http);
-    close(d);
-    return (bady);
-}
-std ::string msg_error1(int status)
-{
-    std ::string msg;
-    if (status == 200)
-        msg = " file deleted";
-    if (status == 202)
-        msg = " Accepted";
-    if (status == 204)
-        msg = " No Content";
-    if (status == 400)
-        msg = " Bad Requestd";
-    if (status == 401)
-        msg = " Unauthorized";
-    if (status == 403)
-        msg = " Forbidden";
-    if (status == 404)
-        msg = " Page not found";
-    if (status == 405)
-        msg = " Method Not Allowed";
-    if (status == 409)
-        msg = " Conflict";
-    if (status == 505)
-        msg = " HTTP Version Not Supported";
-    return msg;
-}
 
-std ::string check_auto(Location &location, Configuration &conf_serv, std ::string root)
-{
-    std ::string str;
-    if (!location.getindex().empty())
-        str = root + "/" + location.getindex();
-    else
-        str = root + "/" + conf_serv.getindex()[0];
-    return str;
-}
 Response::Response(Prasing_Request rq, Configuration conf_serv)
 {
+
+    // std::cout << "url = " << rq.get_url() << std::endl;
     std::pair<Location, std::string> location_and_url = find_location(rq.get_url(), conf_serv);
+    // std::cout << "-->"<<rq.get_mymap()["Cookie"]<<std::endl;
+
+    // std::cout<<"------>"<<location_and_url.first.getallow_methods()[0]<<std::endl;
     try
     {
-        if (!location_and_url.second.compare("/cgi-bin"))
+          if (!location_and_url.second.compare("/cgi-bin"))
         {
+
             run_cgi(location_and_url.first, rq, conf_serv);
-            return;
-        }
+            return ;
+        }  
     }
     catch (std::string &var)
     {
         std::cerr << var << '\n';
     }
-    // std::cout << "----------------------\n";
-    std::cout << this->respons << std::endl;
-    // run_cgi(location_and_url.first.first, location_and_url.first, conf_serv);
-    std::vector<std ::string>::iterator it;
+    // return ;
     status = rq.get_status();
-    int fd = 0;
     mymap = rq.get_mymap();
     std ::string url = rq.get_url();
     // Location loca(conf_serv, url);
@@ -288,321 +225,229 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
     std ::string root;
     std ::string url2;
     int j;
-    it = std::find(location_and_url.first.getallow_methods().begin(), location_and_url.first.getallow_methods().end(), method);
-    if (it == location_and_url.first.getallow_methods().end())
-        status = 405;
     if (!location_and_url.first.getroot().empty())
         root = location_and_url.first.getroot() + url;
     else
         root = conf_serv.getroot() + url;
     std ::string autoindex;
-    int d;
-    std ::string str = check_auto(location_and_url.first, conf_serv, root);
-    if (location_and_url.first.getautoindex() == "on" && (d = open(str.c_str(), O_RDWR)) != -1)
-        autoindex = "off";
-    else if (!location_and_url.first.getautoindex().empty() && location_and_url.first.getautoindex() == "on")
+    if ( !location_and_url.first.getautoindex().empty() && location_and_url.first.getautoindex() == "on")
         autoindex = "on";
     else
         autoindex = "off";
-    close(d);
     if (autoindex != "on")
     {
         DIR *dir = opendir(root.c_str());
-        if (dir != NULL && !location_and_url.first.getindex().empty())
+        if (dir  != NULL && !location_and_url.first.getindex().empty())
             url2 = root + "/" + location_and_url.first.getindex();
-        else if (dir != NULL && !conf_serv.getindex().empty())
-            url2 = root + "/" + conf_serv.getindex()[0];
+        else if (dir!= NULL && !conf_serv.getindex().empty())
+             url2 = root + "/" + conf_serv.getindex()[0];
         else
-        {
-            fd = 1;
             url2 = root;
-            if (!access(url2.c_str(), F_OK) && access(url2.c_str(), R_OK))
-                fd = 0;
-        }
-        if (dir)
+        if(dir)
             closedir(dir);
     }
-    if (status == 200)
+    // if(autoindex == "off")
+    //    url1 = "/index.html";
+    if (1)
     {
-        if (method == "POST" || method == "GET")
+        DIR *dir;
+        dirent *ent;
+        if(autoindex == "on")
+            dir = opendir(root.c_str());
+        else
+            dir = opendir(url2.c_str());
+
+        std::string url1;
+        if (!location_and_url.first.getreturn_path().empty())
         {
-
-            DIR *dir;
-            dirent *ent;
-            if (autoindex == "on")
-                dir = opendir(root.c_str());
-            else
-                dir = opendir(url2.c_str());
-
-            std::string url1;
-            if (!location_and_url.first.getreturn_path().empty())
+            std ::string bady;
+            bady = "HTTP/1.1 301 Moved Permanently";
+            bady.append("\nLocation: ");
+            bady.append(location_and_url.first.getreturn_path());
+            bady.append("\n");
+            respons = bady;
+            return;
+        }
+        if (autoindex == "on")
+        {
+            int i;
+            std ::string bady;
+            std ::string msg;
+            bady.append("HTTP/1.1 ");
+            bady.append(int_to_string(status));
+            bady.append(" OK \nServer: Server \nDate: ");
+            time_t now = time(0);
+            char *time = ctime(&now);
+            bady.append(time);
+            if (dir != NULL)
             {
-                std ::string bady;
-                bady = "HTTP/1.1 301 Moved Permanently";
-                bady.append("\nLocation: ");
-                bady.append(location_and_url.first.getreturn_path());
-                bady.append("\n");
+                bady.append("Content-Type: text/html\nContent-Length: ");
+                msg = "<!DOCTYPE html>\n\
+                        <html lang=\"en\">\n\
+                        <ol> ";
+                while ((ent = readdir(dir)) != NULL)
+                {
+                    std::string name = ent->d_name;
+                    std::string name1;
+                    if (url[0] == '/' && !url[1])
+                        name1 = name;
+                    else
+                        name1 = url + "/" + name;
+                    msg += "\n<li><a href=\"" + name1 + "\">" + name + "</a></li>\n";
+                }
+                msg += "</ol>\n\
+                           </html>";
+                int len = msg.length();
+                bady.append(int_to_string(len));
+                bady.append("\n\n");
+                bady.append(msg);
                 respons = bady;
+                closedir(dir);
                 return;
             }
-            if (autoindex == "off")
+            else if ((i = open(root.c_str(), O_RDWR)) != -1)
             {
-                if ((j = open(url2.c_str(), O_RDWR)) != -1)
+                bady.append("Content-Type: ");
+                bady.append(Content_type(root));
+                bady.append("\nContent-Length: ");
+                std::ifstream file(root.c_str());
+                std::string http;
+                if (file)
                 {
-                    std ::string bady;
-                    std::ifstream file(url2.c_str());
-                    std::string http;
-                    if (file)
-                    {
-                        std::ostringstream str;
-                        str << file.rdbuf();
-                        http = str.str();
-                    }
-                    bady.append("HTTP/1.1 ");
-                    bady.append(int_to_string(status));
-                    bady.append(" OK \nServer: Server\nDate: ");
-                    time_t now = time(0);
-                    char *time = ctime(&now);
-                    bady.append(time);
-                    bady.append("Content-Type: ");
-                    bady.append(Content_type(url2));
-                    bady.append("\nContent-Length: ");
-                    int len = http.length();
-                    bady.append(int_to_string(len));
-                    bady.append("\n\n");
-                    bady.append(http);
-                    respons = bady;
-                    close(j);
-                    return;
+                    std::ostringstream str;
+                    str << file.rdbuf();
+                    http = str.str();
                 }
-                // else if (dir != NULL)
-                // {
-                //     std ::string bady;
-                //     std ::string msg;
-                //     bady.append("HTTP/1.1 ");
-                //     bady.append(int_to_string(status));
-                //     bady.append(" OK \nServer: Server \nDate: ");
-                //     time_t now = time(0);
-                //     char *time = ctime(&now);
-                //     bady.append(time);
-                //     bady.append("Content-Type: text/html\nContent-Length: ");
-                //     msg = "<!DOCTYPE html>\n\
-                //             <html lang=\"en\">\n\
-                //             <ol> ";
-                //     while ((ent = readdir(dir)) != NULL)
-                //     {
-                //         std::string name = ent->d_name;
-                //         std::string name1;
-                //         if (url[0] == '/' && !url[1])
-                //             name1 = name;
-                //         else
-                //             name1 = url + "/" + name;
-                //         msg += "\n<li><a href=\"" + name1 + "\">" + name + "</a></li>\n";
-                //     }
-                //     msg += "</ol>\n\
-                //            </html>";
-                //     int len = msg.length();
-                //     bady.append(int_to_string(len));
-                //     bady.append("\n\n");
-                //     bady.append(msg);
-                //     respons = bady;
-                //     closedir(dir);
-                //     return;
-                // }
-                else if (autoindex == "off" && location_and_url.first.getautoindex() == "on")
-                    autoindex = "on";
-                else
-                {
-                    if (fd == 0 || (!access(url2.c_str(), F_OK) && access(url2.c_str(), R_OK)))
-                        status = 403;
-                    else
-                        status = 404;
-                    std ::string bady;
-                    std ::string url3 = "error/" + int_to_string(status) + ".html";
-                    int i = open(url3.c_str(), O_RDWR);
-                    if (i == -1)
-                        return;
-                    std::ifstream file(url3.c_str());
-                    std::string http;
-                    if (file)
-                    {
-                        std::ostringstream str;
-                        str << file.rdbuf();
-                        http = str.str();
-                    }
-                    bady.append("HTTP/1.1 ");
-                    bady.append(int_to_string(status));
-                    bady.append(msg_error1(status));
-                    bady.append("\nServer: Server\nDate: ");
-                    time_t now = time(0);
-                    char *time = ctime(&now);
-                    bady.append(time);
-                    bady.append("Content-Type: text/html\nContent-Length: ");
-                    int len = http.length();
-                    bady.append(int_to_string(len));
-                    bady.append("\n\n");
-                    bady.append(http);
-                    respons = bady;
-                    close(i);
-                    return;
-                }
+                int len = http.length();
+                bady.append(int_to_string(len));
+                bady.append("\n\n");
+                bady.append(http);
+                respons = bady;
+                close(i);
+                return;
             }
-            if (autoindex == "on")
+            else
             {
-                int i;
+                status = 404;
                 std ::string bady;
-                std ::string msg;
+                std ::string url3 = "www/error.html";
+                int d = open(url3.c_str(), O_RDWR);
+                std::ifstream file(url3.c_str());
+                std::string http;
+                if (file)
+                {
+                    std::ostringstream str;
+                    str << file.rdbuf();
+                    http = str.str();
+                }
                 bady.append("HTTP/1.1 ");
                 bady.append(int_to_string(status));
-                bady.append(" OK \nServer: Server \nDate: ");
-                time_t now = time(0);
-                char *time = ctime(&now);
+                bady.append(" ErrorDocument \nServer: Server\nDate: ");
                 bady.append(time);
-                if (dir != NULL)
-                {
-                    bady.append("Content-Type: text/html\nContent-Length: ");
-                    msg = "<!DOCTYPE html>\n\
-                            <html lang=\"en\">\n\
-                            <ol> ";
-                    while ((ent = readdir(dir)) != NULL)
-                    {
-                        std::string name = ent->d_name;
-                        std::string name1;
-                        if (url[0] == '/' && !url[1])
-                            name1 = name;
-                        else
-                            name1 = url + "/" + name;
-                        msg += "\n<li><a href=\"" + name1 + "\">" + name + "</a></li>\n";
-                    }
-                    msg += "</ol>\n\
-                           </html>";
-                    int len = msg.length();
-                    bady.append(int_to_string(len));
-                    bady.append("\n\n");
-                    bady.append(msg);
-                    respons = bady;
-                    closedir(dir);
-                    return;
-                }
-                else if ((i = open(root.c_str(), O_RDWR)) != -1)
-                {
-                    bady.append("Content-Type: ");
-                    bady.append(Content_type(root));
-                    bady.append("\nContent-Length: ");
-                    std::ifstream file(root.c_str());
-                    std::string http;
-                    if (file)
-                    {
-                        std::ostringstream str;
-                        str << file.rdbuf();
-                        http = str.str();
-                    }
-                    int len = http.length();
-                    bady.append(int_to_string(len));
-                    bady.append("\n\n");
-                    bady.append(http);
-                    respons = bady;
-                    close(i);
-                    return;
-                }
-                else
-                {
-                    status = 404;
-                    std ::string bady;
-                    std ::string url3 = "error/404.html";
-                    int d = open(url3.c_str(), O_RDWR);
-                    std::ifstream file(url3.c_str());
-                    std::string http;
-                    if (file)
-                    {
-                        std::ostringstream str;
-                        str << file.rdbuf();
-                        http = str.str();
-                    }
-                    bady.append("HTTP/1.1 ");
-                    bady.append(int_to_string(status));
-                    bady.append(" Not found\nServer: Server\nDate: ");
-                    bady.append(time);
-                    bady.append("Content-Type: text/html\nContent-Length: ");
-                    int len = http.length();
-                    bady.append(int_to_string(len));
-                    bady.append("\n\n");
-                    bady.append(http);
-                    respons = bady;
-                    close(d);
-                    close(i);
-                    return;
-                }
+                bady.append("Content-Type: text/html\nContent-Length: ");
+                int len = http.length();
+                bady.append(int_to_string(len));
+                bady.append("\n\n");
+                bady.append(http);
+                respons = bady;
+
+                close(i);
+                return;
             }
+        }
+        else if ((j = open(url2.c_str(), O_RDWR)) != -1)
+        {
+            std ::string bady;
+            std::ifstream file(url2.c_str());
+            std::string http;
+            if (file)
+            {
+                std::ostringstream str;
+                str << file.rdbuf();
+                http = str.str();
+            }
+            bady.append("HTTP/1.1 ");
+            bady.append(int_to_string(status));
+            bady.append(" OK \nServer: Server\nDate: ");
+            time_t now = time(0);
+            char *time = ctime(&now);
+            bady.append(time);
+            bady.append("Content-Type: ");
+            bady.append(Content_type(url2));
+            bady.append("\nContent-Length: ");
+            int len = http.length();
+            bady.append(int_to_string(len));
+            bady.append("\n\n");
+            bady.append(http);
+            respons = bady;
+            close(j);
+            return;
+        }
+        else if (dir != NULL)
+        {
+            std :: cout << "ssssssssssssssssssssss\n";
+            std ::string bady;
+            std ::string msg;
+            bady.append("HTTP/1.1 ");
+            bady.append(int_to_string(status));
+            bady.append(" OK \nServer: Server \nDate: ");
+            time_t now = time(0);
+            char *time = ctime(&now);
+            bady.append(time);
+            bady.append("Content-Type: text/html\nContent-Length: ");
+            msg = "<!DOCTYPE html>\n\
+                        <html lang=\"en\">\n\
+                        <ol> ";
+            while ((ent = readdir(dir)) != NULL)
+            {
+                std::string name = ent->d_name;
+                std::string name1;
+                if (url[0] == '/' && !url[1])
+                    name1 = name;
+                else
+                    name1 = url + "/" + name;
+                msg += "\n<li><a href=\"" + name1 + "\">" + name + "</a></li>\n";
+            }
+            msg += "</ol>\n\
+                           </html>";
+            int len = msg.length();
+            bady.append(int_to_string(len));
+            bady.append("\n\n");
+            bady.append(msg);
+            respons = bady;
+            closedir(dir);
+            return;
         }
         else
         {
-            std ::string del = chec_url(url);
-
-            if (del != "/upload")
+            status = 404;
+            std ::string bady;
+            std ::string url3 = "www/error.html";
+            int i = open(url3.c_str(), O_RDWR);
+            std::ifstream file(url3.c_str());
+            std::string http;
+            if (file)
             {
-                status = 409;
-                respons = status_delete(status, "Conflict");
-                return;
+                std::ostringstream str;
+                str << file.rdbuf();
+                http = str.str();
             }
+            bady.append("HTTP/1.1 ");
+            bady.append(int_to_string(status));
+            bady.append(" ErrorDocument \nServer: Server\nDate: ");
+            time_t now = time(0);
+            char *time = ctime(&now);
+            bady.append(time);
+            bady.append("Content-Type: text/html\nContent-Length: ");
+            int len = http.length();
+            bady.append(int_to_string(len));
+            bady.append("\n\n");
+            bady.append(http);
+            respons = bady;
 
-            DIR *dir;
-            dir = opendir(root.c_str());
-            if (dir == NULL)
-            {
-                std ::string dl = "/" + root;
-                if (remove(root.c_str()) == 0)
-                {
-                    status = 202;
-                    respons = status_delete(status, "Accepted");
-                    return;
-                }
-                else
-                {
-                    status = 204;
-                    respons = status_delete(status, "No Content");
-                    return;
-                }
-            }
-
-            else if (dir != NULL)
-            {
-                status = 401;
-                respons = status_delete(status, "Unauthorized");
-                return;
-            }
-        }
-    }
-    else
-    {
-        std ::string bady;
-        std ::string url3 = "error/" + int_to_string(status) + ".html";
-        int d = open(url3.c_str(), O_RDWR);
-        if (d == -1)
+            close(i);
             return;
-        std::ifstream file(url3.c_str());
-        time_t now = time(0);
-        char *time = ctime(&now);
-        std::string http;
-        if (file)
-        {
-            std::ostringstream str;
-            str << file.rdbuf();
-            http = str.str();
         }
-        bady.append("HTTP/1.1 ");
-        bady.append(int_to_string(status));
-        bady.append(msg_error1(status));
-        bady.append("\nServer: Server\nDate: ");
-        bady.append(time);
-        bady.append("Content-Type: text/html\n\nContent-Length: ");
-        int len = http.length();
-        bady.append(int_to_string(len));
-        bady.append("\n\n");
-        bady.append(http);
-        respons = bady;
-        close(d);
-        return;
     }
 }
 
