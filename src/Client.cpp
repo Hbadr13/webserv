@@ -48,10 +48,12 @@ std::string &Client::getMessage()
 }
 void Client::setMessage(std::string value, int size)
 {
-   if(_message.empty())
-    exit(1);
-    _message = value.substr(size, value.length() - size);
-    std::cout<<_message<<std::endl;
+    if (!_message.empty())
+    // exit(1);
+    {
+        _message = value.substr(size, value.length() - size);
+        std::cout << _message << std::endl;
+    }
 }
 
 void Client::setParsingRequest(Prasing_Request &prsrqst)
