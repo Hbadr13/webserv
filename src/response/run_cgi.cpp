@@ -27,7 +27,6 @@ void free_tab(char **envp)
     free(envp);
 }
 
-
 char **get_env_form_map(std::map<std::string, std::string> &map_env)
 {
     char **envp;
@@ -120,7 +119,7 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         root = location.getroot();
     path = url;
     std::cout << "path =" << path << std::endl;
-    if (path.compare(path.length() - 3, 3, ".py"))
+    if (path.compare(path.length() - 3, 3, ".py") && path.compare(path.length() - 4, 4, ".php"))
     {
         this->respons = "HTTP/1.1 403 Forbidden\n\n";
         this->respons += ft_read("www/error/error404.html");
@@ -128,9 +127,18 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         throw std::string("ERROR CGI: may cgi works with code python only");
     }
     path = root + path;
-    av[0] = strdup("/usr/bin/python3");
-    av[1] = strdup((path + "").c_str());
-    av[2] = NULL;
+    if (!path.compare(path.length() - 3, 3, ".py"))
+    {
+        av[0] = strdup("/usr/bin/python3");
+        av[1] = strdup((path).c_str());
+        av[2] = NULL;
+    }
+    else if (!path.compare(path.length() - 4, 4, ".php"))
+    {
+        av[0] = strdup("/usr/bin/php");
+        av[1] = strdup((path).c_str());
+        av[2] = NULL;
+    }
     int fd_execute = open(path.c_str(), O_RDONLY);
     if (fd_execute < 0)
     {
