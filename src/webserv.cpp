@@ -169,12 +169,15 @@ int Webserv::ft_accept(pollfd &tmp_fd)
     }
     return 0;
 }
-
+std::string g;
 int Webserv::ft_recv(pollfd &tmp_fd, int j)
 {
-    char buf[BUFFERSIZE];
-    bzero(buf, BUFFERSIZE);
-    int n = recv(tmp_fd.fd, buf, BUFFERSIZE, 0);
+    char buf2[BUFFERSIZE];
+    bzero(buf2, BUFFERSIZE);
+    int n = read(tmp_fd.fd, buf2, BUFFERSIZE);
+
+    // std::cout<<buf2;
+    // std::cout<<"rr = "<<r<< "mmm ="<<m<<std::endl;
     if (n == 0)
     {
         printf("client %d closed connection\n", tmp_fd.fd);
@@ -182,7 +185,8 @@ int Webserv::ft_recv(pollfd &tmp_fd, int j)
         tmp_fd.fd = -1;
         return 1;
     }
-    _clients[j]->setReuqst(buf);
+    // std::string a = std::string(buf2);
+    _clients[j]->setReuqst(buf2, n);
     _clients[j]->find_request_eof();
     if (_clients[j]->getEof() == true)
     {
@@ -198,7 +202,7 @@ int Webserv::ft_recv(pollfd &tmp_fd, int j)
 }
 int Webserv::ft_send(pollfd &tmp_fd, int i, int j)
 {
-    std::cout<<_clients[j]->getMessage();
+    // std::cout<<_clients[j]->getMessage();
     int n = send(tmp_fd.fd, _clients[j]->getMessage().c_str(), _clients[j]->getMessage().size(), 0);
     // std::cout<<"----------2\n";
     _clients[j]->setMessage(_clients[j]->getMessage(), n);

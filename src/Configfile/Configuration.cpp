@@ -227,7 +227,7 @@ void  Configuration::init_my_config()
         else if(!it->first.compare("limit_client_body_size"))
             this->limit_client_body_size = it->second[0];
         else if(!it->first.compare("index"))
-            this->index = it->second;
+            this->index = it->second[0];
         else
         {
                 exit(1);
@@ -263,7 +263,7 @@ std::string Configuration::getroot()
 
     return this->root;
 }
-std::vector<std::string> Configuration::getindex()
+std::string Configuration::getindex()
 {
     return this->index;
 }

@@ -4,6 +4,7 @@ SRC_FILE 	= main.cpp src/webserv.cpp  src/Client.cpp\
 			src/Configfile/Configuration.cpp \
 			src/Configfile/Configuration_util.cpp\
 			src/Configfile/Location.cpp src/response/Response.cpp\
+			src/response/Content_type.cpp\
 			src/response/run_cgi.cpp
 OBJ_FILE	= $(SRC_FILE:.cpp=.o)
 CC			= c++

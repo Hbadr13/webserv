@@ -16,7 +16,7 @@ private:
     std::string root;
     std::string host;
     std::vector<std::string> cgi;
-    std::vector<std::string> index;
+    std::string index;
     std::string limit_client_body_size;
     std::vector<std::string> server_names;
     std::map<std::string, std::map<std::string, std::vector<std::string> > > locations;
@@ -44,7 +44,7 @@ public:
     std::string getlimit_client_body_size();
     std::string gethost();
     std::string getroot();
-    std::vector<std::string> getindex();
+    std::string getindex();
     std::vector<std::string> getcgi();
     std::vector<std::string> getserver_names();
 };

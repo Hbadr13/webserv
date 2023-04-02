@@ -9,7 +9,7 @@ int main(int argc, char **argv)
     Webserv myserver(argv[1]);
     if (-1 == myserver.init_server())
         return 1;
+    // while(1);
     myserver.run_server();
-
     return 0;
 }

@@ -91,25 +91,25 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     std::string url;
     char **envp;
     char **av;
+    int flag;
     int pid;
     int fd;
 
-    av = (char **)malloc(sizeof(char *) * 3);
-    if (requst.get_method().compare("POST") && requst.get_method().compare("GET"))
+    flag = 0;
+    int i;
+    // std::cout<<location.getallow_methods()[i]<<std::endl;
+    for (i = 0; i < location.getallow_methods().size(); i++)
+    {
+        if (!location.getallow_methods()[i].compare(requst.get_method()))
+            flag = 1;      
+    }
+    if (flag == 0 )//|| (requst.get_method().compare("POST") && requst.get_method().compare("GET")))
     {
         this->respons = "HTTP/1.1 405 Method Not Allowed\r\n";
         this->respons += "content-type: text/html\r\n";
         this->respons += "\r\n";
         this->respons += ft_read("www/error/error404.html");
         throw std::string("ERROR CGI: Method Not Allowed");
-    }
-    if (av == NULL)
-    {
-        this->respons = "HTTP/1.1 503 Service Unavailable\r\n";
-        this->respons += "content-type: text/html\r\n";
-        this->respons += "\r\n";
-        this->respons += ft_read("www/error/error404.html");
-        throw std::string("ERROR CGI: malloc");
     }
     url = parsing_url(requst.get_url());
     if (location.getroot().empty() && conf_serv.getroot().empty())
@@ -135,18 +135,6 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         throw std::string("ERROR CGI: may cgi works with code python only");
     }
     path = root + path;
-    if (!path.compare(path.length() - 3, 3, ".py"))
-    {
-        av[0] = strdup("/usr/bin/python3");
-        av[1] = strdup((path).c_str());
-        av[2] = NULL;
-    }
-    else if (!path.compare(path.length() - 4, 4, ".php"))
-    {
-        av[0] = strdup("/usr/bin/php");
-        av[1] = strdup((path).c_str());
-        av[2] = NULL;
-    }
     int fd_execute = open(path.c_str(), O_RDONLY);
     if (fd_execute < 0)
     {
@@ -168,6 +156,27 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         this->respons += "500";
         throw std::string("ERROR CGI: www/trash/trash.txt not found");
     }
+    av = (char **)malloc(sizeof(char *) * 3);
+    if (av == NULL)
+    {
+        this->respons = "HTTP/1.1 503 Service Unavailable\r\n";
+        this->respons += "content-type: text/html\r\n";
+        this->respons += "\r\n";
+        this->respons += ft_read("www/error/error404.html");
+        throw std::string("ERROR CGI: malloc");
+    }
+    if (!path.compare(path.length() - 3, 3, ".py"))
+    {
+        av[0] = strdup("/usr/bin/python3");
+        av[1] = strdup((path).c_str());
+        av[2] = NULL;
+    }
+    else if (!path.compare(path.length() - 4, 4, ".php"))
+    {
+        av[0] = strdup("/usr/bin/php");
+        av[1] = strdup((path).c_str());
+        av[2] = NULL;
+    }
     envp = init_may_env(location, requst, conf_serv);
     pid = fork();
     if (pid == -1)
@@ -181,8 +190,10 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     }
     if (pid == 0)
     {
-        dup2(fd, 1);
-        execve(av[0], av, envp);
+        if(-1 == dup2(fd, 1))
+            exit(1);
+        if(-1 == execve(av[0], av, envp))
+            exit(1);
         exit(1);
     }
     else
@@ -205,7 +216,6 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     this->respons = "HTTP/1.0 200\r\n";
     this->respons += ft_read("www/trash/trash.txt");
     free_tab(envp);
-    std::cout << this->respons << std::endl;
     unlink("www/trash/trash.txt");
     return 1;
 }
