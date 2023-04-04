@@ -30,7 +30,7 @@ public:
 
     Prasing_Request(){};
     Prasing_Request(std ::string req);
-    void prasing_body(std :: string body1);
+    void prasing_body(std :: string body1,std :: string body2);
     int check_first_line(std::string first_line);
     void prasing_headr(std ::string headrs);
     std::map<std::string,std::string> get_mymap();

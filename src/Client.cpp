@@ -2,7 +2,18 @@
 
 Client::Client()
 {
+
 }
+
+int Client::getConnecfd()
+{
+    return _connecfd;
+}
+void Client::setConnecfd(int fd)
+{
+    _connecfd = fd;
+}
+
 Client::~Client()
 {
     _content_Length = "";
@@ -53,11 +64,18 @@ std::string &Client::getMessage()
 {
     return _message;
 }
+std::string &Client::getHostrqst()
+{
+    return _hostrqst;
+}
+void Client::setHostrqst(std::string hostt)
+{
+    _hostrqst = hostt;
+}
 void Client::setMessage(std::string value, int size)
 {
     if (size < 0)
         return;
-    std::cout << size << "|" << value.length() << "|" << size << std::endl;
     _message = value.substr(size, value.length() - size);
 }
 
@@ -122,6 +140,27 @@ int Client::find_Transfer_Encoding()
     return 0;
 }
 
+std ::vector<std ::string> ft_split(std::string str, std::string delimiter)
+{
+    std ::vector<std ::string> v;
+    if (!str.empty())
+    {
+        int start = 0;
+        do
+        {
+            int idx = str.find(delimiter, start);
+            if (idx == std ::string::npos)
+                break;
+            int length = idx - start;
+            v.push_back(str.substr(start, length));
+            start += (length + delimiter.size());
+        } while (true);
+        v.push_back(str.substr(start));
+    }
+
+    return v;
+}
+
 int Client::find_request_eof()
 {
     std::string farstline;
@@ -148,9 +187,19 @@ int Client::find_request_eof()
         if (_reuqst.size() == _cont_legth + _headrs.size())
             _eof = true;
     }
-    // if(!_Transfer_Encoding.compare("chunked") && (_reuqst.find("\r\n0\r\n") != std::string::npos))
+    if(!_Transfer_Encoding.compare("chunked") && (_reuqst.find("\r\n0\r\n") != std::string::npos))
+    {
+         _eof = true;
+    }
+    // std ::vector<std ::string> res = ft_split(_reuqst, "\r\n");
+    // for (int i = 0; i < res.size(); i++)
     // {
-    //      _eof = true;
+    //     std ::string key = res[i].substr(0, res[i].find(":"));
+    //     std ::string value = res[i].substr(res[i].find(" ") + 1);
+    //     mymap.insert(std ::pair<std ::string, std::string>(key, value));
     // }
+    // if(mymap["Host"].find(":") != std::string::npos)
+    //     _hostrqst = mymap["Host"].substr(0,mymap["Host"].find(":"));
     return 0;
 }
+

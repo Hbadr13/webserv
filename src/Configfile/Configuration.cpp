@@ -1,14 +1,11 @@
- 
 #include "Configuration.hpp"
 #include "../webserv.hpp"
 Configuration::Configuration()
 {
-
 }
 
 Configuration::~Configuration()
 {
-
 }
 Configuration::Configuration(std::vector<std::string> &vect_conf)
 {    
@@ -23,21 +20,45 @@ Configuration::Configuration(std::vector<std::string> &vect_conf)
     config_valide();
 }
 
+
+
 void Configuration::config_valide()
 {
     std::map<std::string, std::vector<std::string > >::iterator it = this->config_variable.begin();
     while (it != this->config_variable.end())
     {
+        std::string str = it->first.substr(0, 6);
         it->second.pop_back();
         if(!it->first.compare("listen"))
         {
             if(it->second.size() != 1)
                 error_conf(330);
+            std::string listen = it->second[0];
+            for (size_t i = 0; i < listen.size(); i++)
+            {
+                if (!isdigit(listen[i]))
+                    error_conf(100);
+            }
+        }
+        else if (!str.compare("error_"))
+        {
+            if (it->second.size() != 1)
+                error_conf(303);
+            std::string mote = it->first.substr(6, it->first.length());
+            if (it->first.length() != 9)
+                error_conf(103);
+            for (size_t i = 0; i < mote.size(); i++)
+            {
+                if (!isdigit(mote[i]))
+                    error_conf(100);
+            }
         }
         else if(!it->first.compare("host"))
         {
             if(it->second.size() != 1)
                 error_conf(332);
+            else if (it->second[0].compare("localhost") && it->second[0].compare("127.0.0.1"))
+                error_conf(101);
         }
         else if(!it->first.compare("root"))
         {
@@ -48,6 +69,12 @@ void Configuration::config_valide()
         {
             if(it->second.size() != 1)
                 error_conf(334);
+            std::string listen = it->second[0];
+            for (size_t i = 0; i < listen.size(); i++)
+            {
+                if (!isdigit(listen[i]))
+                    error_conf(100);
+            }
         }
         else if(!it->first.compare("index"))
         {
@@ -55,52 +82,55 @@ void Configuration::config_valide()
                 error_conf(335);
         }
         else
-        {
-            std::cout<<"error varaible11 "<<it->first<<":\n\n";
-            exit(1);
-        }
+            error_conf(336);
         it++;
     }  
     std::map<std::string, std::map<std::string, std::vector<std::string> > >::iterator it2 = this->locations.begin();
     while(it2 != this->locations.end())
     {
         std::map<std::string, std::vector<std::string> >::iterator it3 =  it2->second.begin();
-        if(it2->first.compare("/cgi-bin"))
+        if(!it2->first.compare("/cgi-bin"))
         {
-            
+            while (it3 != it2->second.end())
+            {
+                int check = parsingLocation(it3);
+                if (!it3->first.compare("index"))
+                {
+                    for (size_t i = 0; i < it3->second.size(); i++)
+                    {
+                        int ind = it3->second[i].find(".");
+                        std::string str = it3->second[i].substr(ind, it3->second[i].length());
+                        if (str.compare(".py") && str.compare(".php"))
+                            error_conf(123);
+                    }
+                }
+                else if (check == 1)
+                    error_conf(337);
+                else if (check == 2)
+                {
+                    if(!it3->first.compare("cgi_execute"))
+                    {
+                        if((it3->second[0].compare(".py") || it3->second[1].compare(".php")) 
+                            && (it3->second[0].compare(".php") || it3->second[1].compare(".py")))
+                            error_conf(337);
+                        else
+                            ;
+                    }
+                }
+                it3++;
+            }
         }
-        while (it3 != it2->second.end())
+        else
         {
-            if(!it3->first.compare("root"))
+            while (it3 != it2->second.end())
             {
-                if(it3->second.size() != 1)
-                    error_conf(222);
+                int check = parsingLocation(it3);
+                if (check == 1)
+                    error_conf(337);
+                else if (check == 2)
+                    error_conf(337);
+                it3++;
             }
-            else if(!it3->first.compare("cgi_execute"))
-            ;
-            else if(!it3->first.compare("index"))
-            {
-                if(it3->second.size() != 1)
-                    error_conf(222);
-            }
-            else if(!it3->first.compare("autoindex"))
-            {
-                if(it3->second.size() != 1)
-                    error_conf(222);
-            }
-            else if(!it3->first.compare("allow_methods"))
-            ;
-            else if(!it3->first.compare("limit_client_body_size"))
-            {
-                if(it3->second.size() != 1)
-                    error_conf(222);
-            }
-            else
-            {
-                std::cout<<"error varaible22 "<<it3->first <<":\n\n";
-                exit(1);
-            }
-            it3++;
         }
         it2++;
     }
@@ -216,6 +246,7 @@ void  Configuration::init_my_config()
     std::map<std::string, std::vector<std::string> >::iterator it = this->config_variable.begin();
     while (it != this->config_variable.end())
     {
+        std::string str = it->first.substr(0, 6);
         if(!it->first.compare("listen"))
             this->listen = atoi(it->second[0].c_str());
         else if(!it->first.compare("server_name"))
@@ -228,12 +259,15 @@ void  Configuration::init_my_config()
             this->limit_client_body_size = it->second[0];
         else if(!it->first.compare("index"))
             this->index = it->second[0];
+        else if (!str.compare("error_"))
+            this->error.insert(std::make_pair(atoi(it->first.substr(6, 3).c_str()), it->second[0]));
         else
-        {
-                exit(1);
-        }
+            error_conf(303);
         it++;
     }
+    // for ( std::map<int, std::string> ::iterator it= error.begin(); it != error.end(); ++it) {
+    //     std::cout <<"error = "<< it->first << ": " << it->second << std::endl;
+    // }
 }
 
 std::map<std::string, std::vector<std::string> > Configuration::getconfig_variable()

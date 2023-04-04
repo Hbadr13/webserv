@@ -32,6 +32,7 @@ private:
     int status;
     
     std ::map<std::string, std::string> mymap;
+    std ::map<int , std::string> mymap_erorr;
     std::string respons;
 
 public:

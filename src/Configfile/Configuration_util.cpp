@@ -27,6 +27,75 @@ void print_config(std::vector<std::pair<std::string, std::vector<std::string> > 
     }
 }
 
+bool searchStr(std::map<std::string, std::vector<std::string> >::iterator it3) 
+{
+    int d = 0, p = 0, g = 0;
+    for (size_t i = 0; i < it3->second.size(); i++)
+    {
+        if (!it3->second[i].compare("DELETE"))
+            d++;
+        else if (!it3->second[i].compare("POST"))
+            p++;
+        else if (!it3->second[i].compare("GET"))
+            g++;
+        else
+            return (false);
+    }
+    if (d > 1 || p > 1 || g > 1)
+        return (false);
+    return true;
+}
+
+int ft_isdigit(std::string str)
+{
+    for (size_t i = 0; i < str.size(); i++)
+    {
+        if (!isdigit(str[i]))
+            return (1);
+    }
+    return (0);
+}
+
+int parsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3)
+{
+    if(!it3->first.compare("root"))
+    {
+        if(it3->second.size() != 1)
+            return (1);
+    }
+    else if(!it3->first.compare("index"))
+    {
+        if(it3->second.size() != 1)
+            return (1);
+    }
+    else if(!it3->first.compare("autoindex"))
+    {
+        if(it3->second.size() != 1)
+            return (1);
+        if (it3->second[0].compare("off") && it3->second[0].compare("on"))
+            error_conf(303);
+    }
+    else if(!it3->first.compare("allow_methods"))
+    {
+        if (searchStr(it3) == false)
+            error_conf(101);
+    }       
+    else if(!it3->first.compare("limit_client_body_size"))
+    {
+        if(it3->second.size() != 1)
+            return (1);
+        std::string listen = it3->second[0];
+        for (size_t i = 0; i < listen.size(); i++)
+        {
+            if (!isdigit(listen[i]))
+                error_conf(100);
+        }
+    }
+    else
+        return (2);
+    return (0);
+}
+
 void error_conf(int status)
 {
     std::cout<<"    [Example  About The Configuration File Valid]"<<std::endl;
@@ -59,7 +128,7 @@ void error_conf(int status)
     std::cout<<"        limit_client_body_size 500;"<<std::endl;
     std::cout<<"    }"<<std::endl;
     std::cout<<"}"<<std::endl;
-    exit(1);
+    exit(status);
 }
 
 int Configuration::handling_bracket()

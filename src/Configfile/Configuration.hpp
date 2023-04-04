@@ -13,6 +13,7 @@ class Configuration
 private:
     std::vector<std::string> config;
     int listen ;
+    std::map<int, std::string>  error;
     std::string root;
     std::string host;
     std::vector<std::string> cgi;
@@ -45,6 +46,10 @@ public:
     std::string gethost();
     std::string getroot();
     std::string getindex();
+    std::map<int , std::string> geterror()
+    {
+        return this->error;
+    }
     std::vector<std::string> getcgi();
     std::vector<std::string> getserver_names();
 };
@@ -56,7 +61,7 @@ class Location{
     std::string autoindex;
     std::string index;
     std::string cgi_path;
-    std::string return_path;
+    std::vector<std::string> _return;
     std::vector<std::string> cgi_execute;
     std::vector<std::string> allow_methods;
     public :
@@ -69,13 +74,13 @@ class Location{
     std::string getautoindex();
     std::string getindex();
     std::string getcgi_path();
-    std::string getreturn_path();
+    std::vector<std::string> getreturn();
     std::vector<std::string> getcgi_execute();
     std::vector<std::string> getallow_methods();
     int getlocation_exist();
 
 };
-
+int parsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3);
 void print_config(std::map<std::string, std::vector<std::string> > config_variable, std::map<std::string, std::map<std::string, std::vector<std::string> > > locations);
 void error_conf(int status);
 std::vector<std::string> split_string(std::string str, char c);

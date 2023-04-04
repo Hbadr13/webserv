@@ -26,9 +26,14 @@ private:
     int _cont_legth;
     int _eof;
     int _sizedata;
+    std::map<std::string ,std::string> _mymap;
+    int _connecfd;
+    std::string _hostrqst;
 public:
     pollfd plfd;
     int global;
+    int getConnecfd();
+    void setConnecfd(int fd);
     Prasing_Request &getParsingRequest();
     Configuration &getConfiguration();
     Response &getResponse();
@@ -38,7 +43,8 @@ public:
     std::string &getTransfer_Encoding();
     void setTransfer_Encoding(std::string &value);
     std::string &getMessage();
-
+    std::string &getHostrqst();
+    void setHostrqst(std::string hostt);
     void setParsingRequest(Prasing_Request &prsrqst);
     void setResponse(Response respse);
     void setReuqst(char *value , int n);

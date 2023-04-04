@@ -34,7 +34,6 @@ private:
     std::vector<Client *> _clients;
 
 public:
-    std::map<int, Client *> moch;
     std::vector<pollfd> &get_Pollfd();
     std::vector<Configuration> &get_Confgs();
     std::map<int, Configuration> &get_Servers();
@@ -46,7 +45,7 @@ public:
     int ft_accept(pollfd &tmp_fd);
     int ft_recv(pollfd &tmp_fd, int j);
     int ft_send(pollfd &tmp_fd, int i, int j);
-
+    int server_matching(int j);
     static int server_run()
     {
         return true;
