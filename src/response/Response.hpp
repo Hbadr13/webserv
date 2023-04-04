@@ -36,7 +36,7 @@ private:
     std::string respons;
 
 public:
-    int run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv);
+    int run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv,std::string psth);
     Response();
     Response(Prasing_Request rq, Configuration conf_serv);
     std ::string get_respons();

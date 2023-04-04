@@ -34,24 +34,24 @@ private:
     std::vector<Client *> _clients;
 
 public:
-    std::vector<pollfd> &get_Pollfd();
-    std::vector<Configuration> &get_Confgs();
-    std::map<int, Configuration> &get_Servers();
-    std::vector<Client*> &get_Clients();
-    //---->  memeber  fuction <---\\.
+    //---->      Getters & Setters     <---\\.
+    std::vector<pollfd> &getPollfd();
+    std::vector<Configuration> &getConfgs();
+    std::map<int, Configuration> &getServers();
+    std::vector<Client*> &getClients();
+
+    //---->       Memeber Fuction      <---\\.
     int setup_poollfd();
     int init_server();
     int run_server();
     int ft_accept(pollfd &tmp_fd);
-    int ft_recv(pollfd &tmp_fd, int j);
+    int ft_recv(pollfd &tmp_fd,int i, int j);
     int ft_send(pollfd &tmp_fd, int i, int j);
     int server_matching(int j);
-    static int server_run()
-    {
-        return true;
-    }
-    Webserv();
+
+    //---->  Construction & Destructor <---\\.
     Webserv(char *path);
+    Webserv();
     ~Webserv();
 };
 std::string cleaning_input(std::string str);

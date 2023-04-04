@@ -141,42 +141,32 @@ std ::string check_auto(Location &location, Configuration &conf_serv, std ::stri
 Response::Response(Prasing_Request rq, Configuration conf_serv)
 {
     std::pair<Location, std::string> location_and_url = find_location(rq.get_url(), conf_serv);
+    int found_method = 0;
+    std ::string root;
+    std ::string url2;
     int fd = 0;
-    // try
-    // {
-    //     if (!location_and_url.second.compare("/cgi-bin"))
-    //     {
-
-    //         run_cgi(location_and_url.first, rq, conf_serv);
-    //         return;
-    //     }
-    // }
-    // catch (std::string &var)
-    // {
-    //     std::cerr << var << '\n';
-    // }
-// std::cout<<"------------------1999\n";
+    int d;
+    int j;
     status = rq.get_status();
     mymap = rq.get_mymap();
     mymap_erorr = conf_serv.geterror();
     std ::string url = rq.get_url();
     std ::string method = rq.get_method();
-    std ::string root;
-    std ::string url2;
-    int j;
-    int found_method = 0;
-
     for (int i = 0; i < location_and_url.first.getallow_methods().size(); i++)
         if (method == location_and_url.first.getallow_methods()[i])
-            found_method = 1;
-    if (found_method == 0)
-        status = 405;
+            found_method = 1;    
+    if(status == 200)
+    {
+        if (location_and_url.first.getroot().empty() && conf_serv.getroot().empty())
+            status = 403;
+        else if (found_method == 0)
+            status = 405;
+    }
     if (!location_and_url.first.getroot().empty())
         root = location_and_url.first.getroot() + url;
     else
         root = conf_serv.getroot() + url;
     std ::string autoindex;
-    int d;
     std ::string str = check_auto(location_and_url.first, conf_serv, root);
     if (location_and_url.first.getautoindex() == "on" && (d = open(str.c_str(), O_RDWR)) != -1)
     {
@@ -209,13 +199,13 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
     {
         if (method == "POST" || method == "GET")
         {
+
             DIR *dir;
             dirent *ent;
             if (autoindex == "on")
                 dir = opendir(root.c_str());
             else
                 dir = opendir(url2.c_str());
-
             std::string url1;
             if (!location_and_url.first.getreturn().empty())
             {
@@ -231,6 +221,11 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
             {
                 if ((j = open(url2.c_str(), O_RDWR)) != -1)
                 {
+                    if (!location_and_url.second.compare("/cgi-bin"))
+                    {
+                        run_cgi(location_and_url.first, rq, conf_serv,url2);
+                        return;
+                    }
                     std ::string bady;
                     std::ifstream file(url2.c_str());
                     std::string http;

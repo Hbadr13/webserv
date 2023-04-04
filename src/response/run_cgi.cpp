@@ -82,11 +82,29 @@ char **init_may_env(Location &location, Prasing_Request &requst, Configuration &
     return envp;
 }
 
-int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv)
+std::string return_path(std::string path, std::string status)
+{
+    std::string page;
+    std::string buf;
+    
+    if(open(path.c_str(), O_RDONLY) != -1)
+        page =  path;
+    else
+        page = "src/error/" + status + ".html";
+    std::ifstream file(page.c_str());
+    if (file)
+    {
+        std::ostringstream str;
+        str << file.rdbuf();
+        buf = str.str();
+    }
+    return buf;
+}
+
+int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv,std::string path)
 {
     std::string status;
     std::string root;
-    std::string path;
     int status_exec;
     std::string url;
     char **envp;
@@ -97,73 +115,42 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
 
     flag = 0;
     int i;
-    // std::cout<<location.getallow_methods()[i]<<std::endl;
     for (i = 0; i < location.getallow_methods().size(); i++)
     {
         if (!location.getallow_methods()[i].compare(requst.get_method()))
             flag = 1;      
     }
-    if (flag == 0 )//|| (requst.get_method().compare("POST") && requst.get_method().compare("GET")))
-    {
-        this->respons = "HTTP/1.1 405 Method Not Allowed\r\n";
-        this->respons += "content-type: text/html\r\n";
-        this->respons += "\r\n";
-        this->respons += ft_read("www/error/error404.html");
-        throw std::string("ERROR CGI: Method Not Allowed");
-    }
-    url = parsing_url(requst.get_url());
-    if (location.getroot().empty() && conf_serv.getroot().empty())
-    {
-        this->respons = "HTTP/1.1 403 Forbidden\r\n";
-        this->respons += "content-type: text/html\r\n";
-        this->respons += "\r\n";
-        this->respons += ft_read("www/error/error404.html");
-        throw std::string("ERROR CGI: root not found");
-    }
-    root = conf_serv.getroot();
-    if (!location.getroot().empty())
-        root = location.getroot();
-    path = url;
+    // path = parsing_url(path);
+
     std::cout << "path =" << path << std::endl;
     if (path.compare(path.length() - 3, 3, ".py") && path.compare(path.length() - 4, 4, ".php"))
     {
         this->respons = "HTTP/1.1 403 Forbidden\r\n";
         this->respons += "content-type: text/html\r\n";
         this->respons += "\r\n";
-        this->respons += ft_read("www/error/error404.html");
-        this->respons += "403";
-        throw std::string("ERROR CGI: may cgi works with code python only");
+        this->respons += return_path(mymap_erorr[403], "403");
+        return 1;
     }
-    path = root + path;
     int fd_execute = open(path.c_str(), O_RDONLY);
-    if (fd_execute < 0)
-    {
-        this->respons = "HTTP/1.1 404 not found\r\n";
-        this->respons += "content-type: text/html\r\n";
-        this->respons += "\r\n";
-        this->respons += ft_read("www/error/error404.html");
-        this->respons += "404";
-        throw std::string("ERROR CGI: path not found {" + path + "}");
-    }
-    std::ofstream outfile("www/trash/trash.txt");
-    fd = open("www/trash/trash.txt", O_WRONLY | O_TRUNC);
+    std::ofstream outfile("src/error/trash/trash.txt");
+    fd = open("src/error/trash/trash.txt", O_WRONLY | O_TRUNC);
     if (fd < 0)
     {
         this->respons = "HTTP/1.1 500 Internal Server Error\r\n";
         this->respons += "content-type: text/html\r\n";
         this->respons += "\r\n";
-        this->respons += ft_read("www/error/error404.html");
-        this->respons += "500";
-        throw std::string("ERROR CGI: www/trash/trash.txt not found");
+        this->respons += return_path(mymap_erorr[500], "500");
+        return 1;
     }
     av = (char **)malloc(sizeof(char *) * 3);
     if (av == NULL)
     {
-        this->respons = "HTTP/1.1 503 Service Unavailable\r\n";
+        this->respons = "HTTP/1.1 500 Internal Server Error\r\n";
         this->respons += "content-type: text/html\r\n";
         this->respons += "\r\n";
-        this->respons += ft_read("www/error/error404.html");
-        throw std::string("ERROR CGI: malloc");
+        this->respons += return_path(mymap_erorr[500], "500");
+        std::cout<<"ERROR CGI: malloc"<<std::endl;
+        return 1;
     }
     if (!path.compare(path.length() - 3, 3, ".py"))
     {
@@ -184,9 +171,11 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         this->respons = "HTTP/1.1 500 Internal Server Error\r\n";
         this->respons += "content-type: text/html\r\n";
         this->respons += "\r\n";
-        this->respons += ft_read("www/error/error404.html");
-        this->respons += "500";
-        throw std::string("ERROR CGI: problem in fork");
+        this->respons += return_path(mymap_erorr[500], "500");
+        free_tab(envp);
+        unlink("src/error/trash/trash.txt");
+        std::cout<<"ERROR CGI: problem in fork"<<std::endl;
+        return 1;
     }
     if (pid == 0)
     {
@@ -203,20 +192,20 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         close(fd_execute);
         if (status_exec)
         {
-            this->respons = "HTTP/1.1 501 Not Implemented\r\n";
+            this->respons = "HTTP/1.1 500 Internal Server Error\r\n";
             this->respons += "content-type: text/html\r\n";
             this->respons += "\r\n";
-            this->respons += ft_read("www/error/error404.html");
-            this->respons += "501";
+            this->respons += return_path(mymap_erorr[500], "500");
             free_tab(envp);
-            unlink("www/trash/trash.txt");
-            throw std::string("ERROR CGI: error in execve");
+            unlink("src/error/trash/trash.txt");
+            std::cout<<"ERROR CGI: error in execve"<<std::endl;
+            return 1;
         }
     }
-    this->respons = "HTTP/1.0 200\r\n";
-    this->respons += ft_read("www/trash/trash.txt");
+    this->respons = "HTTP/1.1 200\r\n";
+    this->respons += return_path("src/error/trash/trash.txt", "-1");
     free_tab(envp);
-    unlink("www/trash/trash.txt");
+    unlink("src/error/trash/trash.txtt");
     return 1;
 }
 

@@ -54,7 +54,7 @@ public:
     std::vector<std::string> getserver_names();
 };
 
-class Location{
+class Location {
     private:
     int location_exist;
     std::string root;
@@ -62,7 +62,7 @@ class Location{
     std::string index;
     std::string cgi_path;
     std::vector<std::string> _return;
-    std::vector<std::string> cgi_execute;
+    std::string cgi_execute;
     std::vector<std::string> allow_methods;
     public :
     Location()
@@ -75,7 +75,7 @@ class Location{
     std::string getindex();
     std::string getcgi_path();
     std::vector<std::string> getreturn();
-    std::vector<std::string> getcgi_execute();
+    std::string getcgi_execute();
     std::vector<std::string> getallow_methods();
     int getlocation_exist();
 

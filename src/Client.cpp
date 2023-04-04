@@ -23,6 +23,10 @@ Client::~Client()
     _reuqst = "";
     _body = "";
 }
+void Client::setConfiguration(Configuration &conf)
+{
+    _config = conf;
+}
 Response &Client::getResponse()
 {
     return _response;
@@ -191,15 +195,19 @@ int Client::find_request_eof()
     {
          _eof = true;
     }
-    // std ::vector<std ::string> res = ft_split(_reuqst, "\r\n");
-    // for (int i = 0; i < res.size(); i++)
-    // {
-    //     std ::string key = res[i].substr(0, res[i].find(":"));
-    //     std ::string value = res[i].substr(res[i].find(" ") + 1);
-    //     mymap.insert(std ::pair<std ::string, std::string>(key, value));
-    // }
-    // if(mymap["Host"].find(":") != std::string::npos)
-    //     _hostrqst = mymap["Host"].substr(0,mymap["Host"].find(":"));
+    std ::vector<std ::string> res = ft_split(_reuqst, "\r\n");
+    for (int i = 0; i < res.size(); i++)
+    {
+        std ::string key = res[i].substr(0, res[i].find(":"));
+        std ::string value = res[i].substr(res[i].find(" ") + 1);
+        _mymap.insert(std ::pair<std ::string, std::string>(key, value));
+    }
+    if(_mymap["Host"].find(":") != std::string::npos)
+        _hostrqst = _mymap["Host"].substr(0,_mymap["Host"].find(":"));
+    else
+        _hostrqst = _mymap["Host"];
+
+    std::cout<<"host|"<< _hostrqst<<std::endl;
     return 0;
 }
 

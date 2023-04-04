@@ -79,6 +79,14 @@ int parsingLocation(std::map<std::string, std::vector<std::string> >::iterator i
     {
         if (searchStr(it3) == false)
             error_conf(101);
+    }
+    else if (!it3->first.compare("return"))
+    {
+        if (ft_isdigit(it3->second[0]) == 1)
+            error_conf(103);
+        int ind = atoi(it3->second[0].c_str());
+        if (ind < 0 || ind > 999)
+            error_conf (103);
     }       
     else if(!it3->first.compare("limit_client_body_size"))
     {
@@ -109,7 +117,7 @@ void error_conf(int status)
     std::cout<<"    limit_client_body_size 500;"<<std::endl;
     std::cout<<""<<std::endl;
     std::cout<<"    location / {"<<std::endl;
-    std::cout<<"        allow_methods  HEAD POST DELETE;"<<std::endl;
+    std::cout<<"        allow_methods  GET POST DELETE;"<<std::endl;
     std::cout<<"        root www;"<<std::endl;
     std::cout<<"        index index.html;"<<std::endl;
     std::cout<<"        autoindex off;"<<std::endl;
@@ -117,14 +125,15 @@ void error_conf(int status)
     std::cout<<""<<std::endl;
     std::cout<<"    location /upload{"<<std::endl;
     std::cout<<"      index index.html;"<<std::endl;
+    std::cout<<"      return 301 /upload;"<<std::endl;
     std::cout<<"    }"<<std::endl;
     std::cout<<""<<std::endl;
     std::cout<<"    location /cgi-bin {"<<std::endl;
-    std::cout<<"        allow_methods  HEAD POST;"<<std::endl;
+    std::cout<<"        allow_methods  GET POST;"<<std::endl;
     std::cout<<"        root www/;"<<std::endl;
     std::cout<<"        autoindex off;"<<std::endl;
-    std::cout<<"        index index.py index.php;"<<std::endl;
-    std::cout<<"        cgi_execute .py .php;"<<std::endl;
+    std::cout<<"        index index.py;"<<std::endl;
+    std::cout<<"        cgi_execute .py;"<<std::endl;
     std::cout<<"        limit_client_body_size 500;"<<std::endl;
     std::cout<<"    }"<<std::endl;
     std::cout<<"}"<<std::endl;

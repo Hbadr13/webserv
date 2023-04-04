@@ -3,18 +3,33 @@
 
 Webserv::Webserv()
 {
+
+}
+
+Webserv::~Webserv()
+{
+    int i = 0;
+    while(i < _clients.size())
+    {
+        if(_clients[i])
+            delete _clients[i];
+        i++;
+    }
 }
 
 Webserv::Webserv(char *path)
 {
     std::vector<std::string> config;
+    std::vector<std::string> cnf;
     std::string line_s;
     std::string line;
+    int flag = 0;
+    int i = 0;
 
     std::ifstream file(path);
     if (file.is_open() == 0)
     {
-        std::cout << "error: configiuration file  : file note founde\n";
+        std::cout << "ERROR: Configiuration File Note Founde"<<std::endl;
         exit(1);
     }
     while (getline(file, line))
@@ -29,9 +44,6 @@ Webserv::Webserv(char *path)
     }
     line_s = cleaning_input(line_s);
     config = split_string(line_s, ' ');
-    std::vector<std::string> cnf;
-    int i = 0;
-    int flag = 0;
     while (i < config.size())
     {
         cnf.push_back(config[i]);
@@ -58,24 +70,21 @@ Webserv::Webserv(char *path)
     }
 
 }
-Webserv::~Webserv()
-{
 
-}
-std::vector<struct pollfd> &Webserv::get_Pollfd()
+std::vector<struct pollfd> &Webserv::getPollfd()
 {
     return _pollfd;
     ;
 }
-std::vector<Configuration> &Webserv::get_Confgs()
+std::vector<Configuration> &Webserv::getConfgs()
 {
     return _confgs;
 }
-std::map<int, Configuration> &Webserv::get_Servers()
+std::map<int, Configuration> &Webserv::getServers()
 {
     return _servers;
 }
-std::vector<Client *> &Webserv::get_Clients()
+std::vector<Client *> &Webserv::getClients()
 {
     return _clients;
 }
@@ -139,6 +148,45 @@ int Webserv::setup_poollfd()
     }
     return 0;
 }
+
+
+int Webserv::server_matching(int j)
+{
+    std::map<int, Configuration>::iterator it;
+    int flag;
+    int num;
+    
+    flag = true;
+    num = 0;
+    it =  _servers.begin();
+    while(it != _servers.end())
+    {
+        if(it->second.getlisten() == _servers[_clients[j]->getConnecfd()].getlisten())
+            num++;
+        it++;
+    }
+    if(num >= 2)
+    {
+        it = _servers.begin();
+        while(it != _servers.end())
+        {
+            if(it->second.getlisten() == _servers[_clients[j]->getConnecfd()].getlisten())
+            {
+                if(it->second.gethost() ==_clients[j]->getHostrqst())
+                {
+                    std::cout<<_servers[_clients[j]->getConnecfd()].gethost()<<std::endl;
+                    _clients[j]->setConfiguration(it->second);
+                    flag = false;
+                }
+            }
+            it++;
+        }
+    }
+    if(flag)
+        _clients[j]->setConfiguration(_servers[_clients[j]->getConnecfd()]);
+    return 0;
+}
+
 int Webserv::ft_accept(pollfd &tmp_fd)
 {
     struct sockaddr_in cli_addr;
@@ -150,7 +198,7 @@ int Webserv::ft_accept(pollfd &tmp_fd)
     if (accepted.fd == -1)
     {
         std::cout << "I can't handling this connection from port: " << _servers[tmp_fd.fd].getlisten() << std::endl;
-        return -1;
+        return 1;
     }
     else
     {
@@ -160,7 +208,7 @@ int Webserv::ft_accept(pollfd &tmp_fd)
             return -1;
         }
         accepted.events = POLLIN;
-        Client *client = new Client(_servers[tmp_fd.fd]);
+        Client *client = new Client();
         client->plfd = accepted;
         client->setConnecfd(tmp_fd.fd);
         _clients.push_back(client);
@@ -169,47 +217,37 @@ int Webserv::ft_accept(pollfd &tmp_fd)
     }
     return 0;
 }
-std::string g;
-int Webserv::server_matching(int j)
+
+int Webserv::ft_recv(pollfd &tmp_fd, int i,int j)
 {
-    int num;
-    num = 0;
-    int flag = false;
-    std::map<int, Configuration>::iterator it = _servers.begin();
-    while(it != _servers.end())
+    char buf[BUFFERSIZE];
+    bzero(buf, BUFFERSIZE);
+    int sizeofdata;
+    sizeofdata = recv(tmp_fd.fd, buf, BUFFERSIZE, 0);
+    if(sizeofdata < 0)
     {
-
-    }
-    if(num >= 2)
-    {
-
-    }
-    // if(flag);
-    return 0;
-}
-int Webserv::ft_recv(pollfd &tmp_fd, int j)
-{
-    char buf2[BUFFERSIZE];
-    bzero(buf2, BUFFERSIZE);
-    int n = read(tmp_fd.fd, buf2, BUFFERSIZE);
-
-    // std::cout<<buf2;
-    // std::cout<<"rr = "<<r<< "mmm ="<<m<<std::endl;
-    if (n == 0)
-    {
-        printf("client %d closed connection\n", tmp_fd.fd);
+        std::cout << "Error: unable to receive data from client FD " << tmp_fd.fd << "\n";
         close(tmp_fd.fd);
-        tmp_fd.fd = -1;
+        delete _clients[j];
+        _pollfd.erase(_pollfd.begin() + i);
+        _clients.erase(_clients.begin() + j);
         return 1;
     }
-    // std::string a = std::string(buf2);
-    _clients[j]->setReuqst(buf2, n);
+    if (sizeofdata == 0)
+    {
+        std::cout<<"client " << tmp_fd.fd <<" closed connection"<<std::endl;
+        close(tmp_fd.fd);
+        delete _clients[j];
+        _pollfd.erase(_pollfd.begin() + i);
+        _clients.erase(_clients.begin() + j);
+        return 1;
+    }
+    _clients[j]->setReuqst(buf,sizeofdata);
     _clients[j]->find_request_eof();
     if (_clients[j]->getEof() == true)
     {
         tmp_fd.events = POLLOUT;
-        // server_matching(tmp_fd.fd);
-        // std::cout << _clients[j]->getReuqst() << std::endl<<"\n\n\n\n\n\n-";
+        server_matching(j);
         Prasing_Request prs_reqst(_clients[j]->getReuqst());
         _clients[j]->setParsingRequest(prs_reqst);
         Response response(prs_reqst, _clients[j]->getConfiguration());
@@ -221,13 +259,22 @@ int Webserv::ft_recv(pollfd &tmp_fd, int j)
 
 int Webserv::ft_send(pollfd &tmp_fd, int i, int j)
 {
-    // std::cout<<_clients[j]->getMessage();
-    int n = send(tmp_fd.fd, _clients[j]->getMessage().c_str(), _clients[j]->getMessage().size(), 0);
-    // std::cout<<"----------2\n";
-    _clients[j]->setMessage(_clients[j]->getMessage(), n);
+    int sizeofdata;
+    sizeofdata = send(tmp_fd.fd, _clients[j]->getMessage().c_str(), _clients[j]->getMessage().size(), 0);
+    if(sizeofdata < 0)
+    {
+        std::cout << "Error: unable to send data to client FD " << tmp_fd.fd << "\n";
+        close(tmp_fd.fd);
+        delete _clients[j];
+        _pollfd.erase(_pollfd.begin() + i);
+        _clients.erase(_clients.begin() + j);
+        return 1;
+    }
+    _clients[j]->setMessage(_clients[j]->getMessage(), sizeofdata);
     if (_clients[j]->getMessage().empty())
     {
         close(tmp_fd.fd);
+        delete _clients[j];
         _pollfd.erase(_pollfd.begin() + i);
         _clients.erase(_clients.begin() + j);
     }
@@ -256,8 +303,8 @@ int Webserv::run_server()
                 for (int j = 0; j < _clients.size(); j++)
                 {
                     if (_clients[j]->plfd.fd == _pollfd[i].fd)
-                        ft_recv(_pollfd[i], j);
-                }
+                        ft_recv(_pollfd[i],i, j);
+               }
             }
             if ((_pollfd[i].revents & POLLOUT))
             {
@@ -271,25 +318,4 @@ int Webserv::run_server()
         }
     }
     return 0;
-}
-
-std::string cleaning_input(std::string str)
-{
-    std::string dst;
-    int start;
-    int i = 0;
-    while (str[i])
-    {
-        start = i;
-        while (str[i] && str[i] != ';' && str[i] != '{' && str[i] != '}')
-            i++;
-        dst += str.substr(start, i - start);
-        dst += " ";
-        dst += str[i];
-        dst += " ";
-        if (!str[i])
-            break;
-        i++;
-    }
-    return dst;
 }

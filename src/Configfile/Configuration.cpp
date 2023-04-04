@@ -91,18 +91,19 @@ void Configuration::config_valide()
         std::map<std::string, std::vector<std::string> >::iterator it3 =  it2->second.begin();
         if(!it2->first.compare("/cgi-bin"))
         {
+            std::string str1;
+            std::string str2;
             while (it3 != it2->second.end())
             {
                 int check = parsingLocation(it3);
                 if (!it3->first.compare("index"))
                 {
-                    for (size_t i = 0; i < it3->second.size(); i++)
-                    {
-                        int ind = it3->second[i].find(".");
-                        std::string str = it3->second[i].substr(ind, it3->second[i].length());
-                        if (str.compare(".py") && str.compare(".php"))
-                            error_conf(123);
-                    }
+                    if(it3->second.size() != 1)
+                        error_conf(338);
+                    int ind = it3->second[0].find(".");
+                    str1 = it3->second[0].substr(ind, it3->second[0].length());
+                    if (str1.compare(".py") && str1.compare(".php"))
+                        error_conf(123);
                 }
                 else if (check == 1)
                     error_conf(337);
@@ -110,8 +111,10 @@ void Configuration::config_valide()
                 {
                     if(!it3->first.compare("cgi_execute"))
                     {
-                        if((it3->second[0].compare(".py") || it3->second[1].compare(".php")) 
-                            && (it3->second[0].compare(".php") || it3->second[1].compare(".py")))
+                        str2 = it3->second[0];
+                        if(it3->second.size() != 1)
+                            error_conf(338);
+                        if(it3->second[0].compare(".py") && it3->second[0].compare(".php"))
                             error_conf(337);
                         else
                             ;
@@ -119,6 +122,8 @@ void Configuration::config_valide()
                 }
                 it3++;
             }
+            if (str2 != str1)
+                error_conf(336);
         }
         else
         {
