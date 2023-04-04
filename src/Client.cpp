@@ -171,10 +171,10 @@ int Client::find_request_eof()
             _readyToRecv = false;
             _cont_legth = atoi(_content_Length.c_str());
         }
-        // if (find_Transfer_Encoding())
-        // {
+        if (find_Transfer_Encoding())
+        {
 
-        // }
+        }
     }
     if (_reuqst.find("\r\n\r\n") != std::string::npos && _headrs.empty())
     {
