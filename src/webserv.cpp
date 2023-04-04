@@ -178,7 +178,7 @@ int Webserv::server_matching(int j)
     std::map<int, Configuration>::iterator it = _servers.begin();
     while(it != _servers.end())
     {
-        
+
     }
     if(num >= 2)
     {
@@ -208,7 +208,7 @@ int Webserv::ft_recv(pollfd &tmp_fd, int j)
     if (_clients[j]->getEof() == true)
     {
         tmp_fd.events = POLLOUT;
-        server_matching(tmp_fd.fd);
+        // server_matching(tmp_fd.fd);
         // std::cout << _clients[j]->getReuqst() << std::endl<<"\n\n\n\n\n\n-";
         Prasing_Request prs_reqst(_clients[j]->getReuqst());
         _clients[j]->setParsingRequest(prs_reqst);
