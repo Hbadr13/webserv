@@ -57,15 +57,16 @@ char **init_may_env(Location &location, Prasing_Request &requst, Configuration &
     if (requst.get_method().compare("POST") == 0)
         map_env["CONTENT_LENGTH"] = "";
     map_env["CONTENT_TYPE"] = "";
-    map_env["HTTP_COOKIE"] = requst.get_mymap()["Cookie"];
+    map_env["HTTP_COOKIE"] =  requst.get_mymap()["Cookie"];
+    std::cout<< map_env["HTTP_COOKIE"]<<std::endl;
     map_env["HTTP_USER_AGENT"] = requst.get_mymap()["User-Agent"];
     map_env["PATH_INFO"] = requst.get_mymap()[""];
     map_env["QUERY_STRING"] = requst.get_budy_url();
     map_env["REMOTE_ADDR"] = "localhost" + int_to_string(conf_serv.getlisten());
-    map_env["REQUEST_METHOD"] = requst.get_method();
+    // map_env["REQUEST_METHOD"] = requst.get_method();
     map_env["SCRIPT_FILENAME"] = requst.get_url().substr(requst.get_url().rfind("/"), requst.get_url().size());
-    map_env["SERVER_NAME"] = "localhost";
-    map_env["GATEWAY_INTERFACE"] = "CGI/1.1";
+    // map_env["SERVER_NAME"] = "localhost";
+    // map_env["GATEWAY_INTERFACE"] = "CGI/1.1";
     map_env["SERVER_PORT"] = int_to_string(conf_serv.getlisten());
     map_env["SERVER_PROTOCOL"] = "HTTP/1.1";
     ptr = getcwd(NULL, 0);
@@ -73,7 +74,8 @@ char **init_may_env(Location &location, Prasing_Request &requst, Configuration &
         map_env["PATH_TRANSLATED"] = (std::string)getcwd(NULL, 0);
     else
         map_env["PATH_TRANSLATED"] = "";
-    free(ptr);
+    if(ptr)
+        free(ptr);
     map_env["SCRIPT_FILENAME"] = url.substr(1, url.size());
     map_env["SCRIPT_NAME"] = url;
     map_env["AUTH_TYPE"] = "Basic";
@@ -160,7 +162,7 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     }
     else if (!path.compare(path.length() - 4, 4, ".php"))
     {
-        av[0] = strdup("/usr/bin/php");
+        av[0] = strdup("./src/server/php-cgi");
         av[1] = strdup((path).c_str());
         av[2] = NULL;
     }
@@ -218,3 +220,4 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
 // 404 Not Found: The requested resource could not be found
 // 500 Internal Server Error: An error occurred on the server while processing the request
 // CGI scripts can also return other status codes, such as 302 Found or 303 See Other, which are used for redirection. However, the above codes are the most commonly used in HTTP responses.
+// 

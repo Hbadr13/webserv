@@ -1,8 +1,9 @@
-Content-type: text/html
+Status: 404 Not Found
+X-Powered-By: PHP/8.1.12
+Content-type: text/html; charset=UTF-8
 
-
-
-<html><head><title>Hello World!! </title></head>
-
-<body><h1>Hello world</h1></body></html>
-
+<br />
+<b>Warning</b>:  Undefined array key "name" in <b>/Users/hbadr/Desktop/webserv/www/cgi-bin/cookies.php</b> on line <b>2</b><br />
+<br>
+Your email address is: <br />
+<b>Warning</b>:  Undefined array key "email" in <b>/Users/hbadr/Desktop/webserv/www/cgi-bin/cookies.php</b> on line <b>3</b><br />
