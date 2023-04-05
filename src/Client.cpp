@@ -173,29 +173,15 @@ int Client::find_content_length()
     return 0;
 }
 
-int Client::init_mayMap()
-{
-    std::string headr;
-    std::cout<<"-----\n"<<_reuqst;
-    if(_reuqst.find("\r\n\r\n")!= std::string::npos)
-        return 1;
-    headr = _reuqst.substr(0, _reuqst.find("\r\n\r\n"));
-    headr = _reuqst.substr(_reuqst.find("\r\n") + 2, _reuqst.size());
-    return 0;
-}
-
 int Client::find_request_eof()
 {
     std::string farstline;
-    // init_mayMap();
     if (find_content_length())
     {
         _readyToRecv = false;
         _cont_legth = atoi(_content_Length.c_str());
     }
-    if (find_Transfer_Encoding())
-    {
-    }
+    find_Transfer_Encoding();
     if (_reuqst.find("\r\n\r\n") != std::string::npos && _headrs.empty())
     {
         _headrs = _reuqst.substr(0, _reuqst.find("\r\n\r\n")) + "\r\n\r\n";
@@ -216,10 +202,8 @@ int Client::find_request_eof()
     {
         key = "";
         value =  "";
-        // if(res[i].find(":") != std::string::npos)
-            key = res[i].substr(0, res[i].find(":"));
-        // if(res[i].find(" ") + 1 != std::string::npos)
-            value = res[i].substr(res[i].find(" ") + 1);
+        key = res[i].substr(0, res[i].find(":"));
+        value = res[i].substr(res[i].find(" ") + 1);
         _mymap.insert(std ::pair<std ::string, std::string>(key, value));
     }
     if (_mymap["Host"].find(":") != std::string::npos)
@@ -228,3 +212,4 @@ int Client::find_request_eof()
         _hostrqst = _mymap["Host"];
     return 0;
 }
+

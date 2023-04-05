@@ -7,7 +7,7 @@ $html = "
 
 <head>
     <title>COOKIES</title>
-    <link rel='stylesheet' type='text/css' href='../STYLE/styleCookies.css'>
+    <link rel='stylesheet' type='text/css' href='../../cookies/styleCookies.css'>
 	<style>
 	video {
 	  display: block;
@@ -22,22 +22,22 @@ $html = "
     <div class='main'>
         <div class='navbar'>
             <div class='icon'>
-                <a href='../index.html'>
+                <a href='../../index.html'>
                     <h2 class='logo'>WEBSERV</h2>
                 </a>
             </div>
             <div class='menu'>
                 <ul>
-                    <li><a href='../index.html'>HOME</a></li>
-                    <li><a href='../FOUNDERS/founders.html'>FOUNDERS</a></li>
-                    <li><a href='../SERVIES/servies.html'>SERVIES</a></li>
-                    <li><a href='../COOKIES/cookies.html'>COOKIES</a></li>
+                    <li><a href='../../index.html'>HOME</a></li>
+                    <li><a href='../../founders/founders.html'>FOUNDERS</a></li>
+                    <li><a href='../../servies/servies.html'>SERVIES</a></li>
+                    <li><a href='../../cookies/cookies.html'>COOKIES</a></li>
                     <li><a href='index.php'>CGI</a></li>
                 </ul>
             </div>
             </div>
 			<video controls>
-			<source src='video.mp4' type='video/mp4'>
+			<source src='../../video/video.mp4' type='video/mp4'>
 			Your browser does not support the video tag.
 		  </video>
             </div>

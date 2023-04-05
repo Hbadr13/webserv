@@ -46,20 +46,20 @@ int parsingLocation(std::map<std::string, std::vector<std::string> >::iterator i
         if(it3->second.size() != 1)
             return (1);
         if (it3->second[0].compare("off") && it3->second[0].compare("on"))
-            error_conf(303);
+            error_conf();
     }
     else if(!it3->first.compare("allow_methods"))
     {
         if (searchStr(it3) == false)
-            error_conf(101);
+            error_conf();
     }
     else if (!it3->first.compare("return"))
     {
         if (ft_isdigit(it3->second[0]) == 1)
-            error_conf(103);
+            error_conf();
         int ind = atoi(it3->second[0].c_str());
         if (ind < 0 || ind > 999)
-            error_conf (103);
+            error_conf ();
     }       
     else if(!it3->first.compare("limit_client_body_size"))
     {
@@ -69,7 +69,7 @@ int parsingLocation(std::map<std::string, std::vector<std::string> >::iterator i
         for (size_t i = 0; i < listen.size(); i++)
         {
             if (!isdigit(listen[i]))
-                error_conf(100);
+                error_conf();
         }
     }
     else
@@ -77,7 +77,7 @@ int parsingLocation(std::map<std::string, std::vector<std::string> >::iterator i
     return (0);
 }
 
-void error_conf(int status)
+void error_conf()
 {
     std::cout<<"    [Example  About The Configuration File Valid]"<<std::endl;
     std::cout<<""<<std::endl;
@@ -110,7 +110,7 @@ void error_conf(int status)
     std::cout<<"        limit_client_body_size 500;"<<std::endl;
     std::cout<<"    }"<<std::endl;
     std::cout<<"}"<<std::endl;
-    exit(status);
+    exit(1);
 }
 
 int Configuration::handling_bracket()
@@ -119,7 +119,7 @@ int Configuration::handling_bracket()
 
     std::vector<std::string> bracket;
     if(_config.size() < 4)
-            error_conf(-1);
+            error_conf();
     while (i < _config.size())
     {
         if (!_config[i].compare("{") || !_config[i].compare("}"))
@@ -127,18 +127,18 @@ int Configuration::handling_bracket()
         i++;
     }
     if(bracket.size() < 4)
-        error_conf(10);
+        error_conf();
     if (bracket[0].compare("{") || bracket[1].compare("{"))
-        error_conf(4);
+        error_conf();
     if (bracket[bracket.size() - 1].compare("}") || !_config[bracket.size() - 2].compare("}"))
-        error_conf(4);
+        error_conf();
     i = 1;
     while (i < bracket.size() - 1)
     {
         if (!bracket[i].compare("{") && !bracket[i + 1].compare("{"))
-            error_conf(4);
+            error_conf();
         if (!bracket[i].compare("}") && !_config[i + 1].compare("}"))
-            error_conf(4);
+            error_conf();
         i++;
     }
     return 0;
@@ -150,27 +150,27 @@ void Configuration::syntax_error()
     int flag = 1;
 
     if (_config[0].compare("server"))
-        error_conf(61);
+        error_conf();
     if (_config[1].compare("{"))
-        error_conf(62);
+        error_conf();
     if (_config[_config.size() - 1].compare("}"))
-        error_conf(63);
+        error_conf();
     if (_config[_config.size() - 1].compare("}"))
-        error_conf(64);
+        error_conf();
     while (i < _config.size() - 1)
     {
         if (!_config[i].compare("}") && _config[i - 1].compare(";"))
-            error_conf(65);
+            error_conf();
         if (flag == 1 && !_config[i].compare("location"))
         {
             if (_config[i - 1].compare(";") || !_config[i + 1].compare("{") || _config[i + 2].compare("{"))
-                error_conf(66);
+                error_conf();
             flag = 0;
         }
         else if (flag == 0 && !_config[i].compare("location"))
         {
             if (_config[i - 1].compare("}") || !_config[i + 1].compare("{") || _config[i + 2].compare("{"))
-                error_conf(6);
+                error_conf();
         }
         i++;
     }

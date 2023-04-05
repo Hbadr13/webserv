@@ -165,9 +165,9 @@ int Webserv::server_matching(int j)
             {
                 if (it->second.gethost() == _clients[j]->getHostrqst())
                 {
-                    std::cout << _servers[_clients[j]->getConnecfd()].gethost() << std::endl;
                     _clients[j]->setConfiguration(it->second);
                     flag = false;
+                    break;
                 }
             }
             it++;
@@ -203,7 +203,6 @@ int Webserv::ft_accept(pollfd &tmp_fd)
         client->setPolfd(accepted);
         client->setConnecfd(tmp_fd.fd);
         _clients.push_back(client);
-        std::cout << std::endl;
         _pollfd.push_back(accepted);
     }
     return 0;

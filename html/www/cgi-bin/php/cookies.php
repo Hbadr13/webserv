@@ -6,24 +6,24 @@ $html1 = "
 
 <head>
     <title>COOKIES</title>
-    <link rel='stylesheet' type='text/css' href='../STYLE/styleCookies.css'>
+    <link rel='stylesheet' type='text/css' href='../../cookies/styleCookies.css'>
 </head>
 
 <body>
     <div class='main'>
         <div class='navbar'>
             <div class='icon'>
-                <a href='../index.html'>
+                <a href='../../index.html'>
                     <h2 class='logo'>WEBSERV</h2>
                 </a>
             </div>
             <div class='menu'>
                 <ul>
-                    <li><a href='../index.html'>HOME</a></li>
-                    <li><a href='../FOUNDERS/founders.html'>FOUNDERS</a></li>
-                    <li><a href='../SERVIES/servies.html'>SERVIES</a></li>
-                    <li><a href='../COOKIES/cookies.html'>COOKIES</a></li>
-                    <li><a href='../CGI/cgi.html'>CGI</a></li>
+                    <li><a href='../../index.html'>HOME</a></li>
+                    <li><a href='../../founders/founders.html'>FOUNDERS</a></li>
+                    <li><a href='../../servies/servies.html'>SERVIES</a></li>
+                    <li><a href='../../cookies/cookies.html'>COOKIES</a></li>
+                    <li><a href='../python/index.py'>CGI</a></li>
                 </ul>
             </div>
             </div>
@@ -42,7 +42,7 @@ $html2 = "
 
 <head>
     <title>COOKIES</title>
-    <link rel='stylesheet' type='text/css' href='../STYLE/styleCookies.css'>
+    <link rel='stylesheet' type='text/css' href='../../cookies/styleCookies.css'>
 </head>
 
 <body>
@@ -55,11 +55,11 @@ $html2 = "
             </div>
             <div class='menu'>
                 <ul>
-                    <li><a href='../index.html'>HOME</a></li>
-                    <li><a href='../FOUNDERS/founders.html'>FOUNDERS</a></li>
-                    <li><a href='../SERVIES/servies.html'>SERVIES</a></li>
-                    <li><a href='../COOKIES/cookies.html'>COOKIES</a></li>
-                    <li><a href='../CGI/cgi.html'>CGI</a></li>
+                    <li><a href='../../index.html'>HOME</a></li>
+                    <li><a href='../../founders/founders.html'>FOUNDERS</a></li>
+                    <li><a href='../../servies/servies.html'>SERVIES</a></li>
+                    <li><a href='../../cookies/cookies.html'>COOKIES</a></li>
+                    <li><a href='../python/index.py'>CGI</a></li>
                 </ul>
             </div>
             </div>
@@ -76,7 +76,7 @@ $env_var = getenv('NAME');
 $env_var = getenv('VALUE');
 
 if ($env_var !== false && $env_var !== '') {
-    setcookie($_ENV['NAME'], $_ENV['VALUE'], 0, '/');
+    setcookie($_ENV['NAME'], $_ENV['VALUE'], 0);
     echo $html1;
     } 
 else {

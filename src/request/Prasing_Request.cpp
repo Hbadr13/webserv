@@ -223,6 +223,7 @@ Prasing_Request::Prasing_Request(std::string hedr , Configuration &conf_serv)
     first.clear();
     body.clear();
 }
+
 void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
 {
     std::string nb;
@@ -230,8 +231,8 @@ void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
     int i = 0;
     std::vector<std::string> one_body;
     nb = "--";
-    size_t index = body1.find("boundary=");
-    if (index == std::string::npos)
+    int index = body1.find("boundary=");
+    if (index == -1)
         return;
     else
     {
@@ -240,24 +241,27 @@ void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
             nb.push_back(body1[index]);
     }
 
-    size_t index2 = 0;
-    size_t fin = 0;
+    int index2 = 0;
+    int fin = 0;
     int rq = 0;
-    for (; index2 != std ::string::npos; i++)
+    for (; index2 != -1; i++)
     {
 
         index2 = body2.find(nb, fin);
         fin = body2.find(nb, index2 + 1);
-        std ::cout << i << " " << index2 << " " << fin << std ::endl;
-        if (index != std ::string::npos && fin != std::string::npos)
+        if (index2 == -1 || fin == -1)
+            return;
+        if (index != -1 && fin != -1)
         {
             one_body.push_back(body2.substr(index2, fin - index2));
+            if (body2[fin + nb.size() + 1] == '-' && body2[fin + nb.size()] == '-')
+                break;
         }
-        if (body2[fin + nb.size() + 1] == '-' && body2[fin + nb.size()] == '-')
-            break;
     }
+
     if (body2.size() > 4)
     {
+
         while (rq <= i)
         {
             if ((one_body[rq].find("filename=") != std::string::npos))
@@ -274,7 +278,7 @@ void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
                     continue;
                 }
                 std ::string str = one_body[rq].substr(one_body[rq].find("\r\n\r\n") + 4);
-                std ::string filee = "www/upload/" + filename;
+                std ::string filee = "html/www/upload/" + filename;
                 if (!filename.empty())
                 {
                     std ::ofstream MyFile(filee);
@@ -284,8 +288,9 @@ void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
             }
             rq++;
         }
-    } 
+    }
 }
+
 std ::string Prasing_Request::get_url()
 {
     return this->url;

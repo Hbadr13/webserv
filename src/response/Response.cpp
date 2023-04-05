@@ -2,11 +2,9 @@
 
 Response::Response()
 {
-
 }
 Response::~Response()
 {
-    
 }
 std::string int_to_string(int numb)
 {
@@ -34,8 +32,6 @@ std ::string chec_url(std ::string urll)
     }
     return result;
 }
-
-
 
 std ::string status_delete(int status, std ::string str, std ::map<int, std::string> mymap_erorr)
 {
@@ -127,8 +123,8 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
     std ::string method = rq.get_method();
     for (size_t i = 0; i < location_and_url.first.getallow_methods().size(); i++)
         if (method == location_and_url.first.getallow_methods()[i])
-            found_method = 1;    
-    if(status == 200)
+            found_method = 1;
+    if (status == 200)
     {
         if (location_and_url.first.getroot().empty() && conf_serv.getroot().empty())
             status = 403;
@@ -179,15 +175,20 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
             else
                 dir = opendir(url2.c_str());
             std::string url1;
-            if (!location_and_url.first.getreturn().empty())
+            if (url == location_and_url.second)
             {
-                std ::string bady;
-                bady = "HTTP/1.1 301 Moved Permanently";
-                bady.append("\nLocation: ");
-                bady.append(location_and_url.first.getreturn()[1]);
-                bady.append("\n");
-                respons = bady;
-                return;
+
+                if (!location_and_url.first.getreturn().empty())
+                {
+                    std ::string bady;
+                    bady = "HTTP/1.1 301 Moved Permanently";
+                    bady.append("\nLocation: ");
+                    bady.append(location_and_url.first.getreturn()[1]);
+                    bady.append("\n");
+                    respons = bady;
+
+                    return;
+                }
             }
             if (autoindex == "off")
             {
@@ -195,7 +196,7 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                 {
                     if (!location_and_url.second.compare("/cgi-bin"))
                     {
-                        if(run_cgi(location_and_url.first, rq, conf_serv,url2))
+                        if (run_cgi(location_and_url.first, rq, conf_serv, url2))
                             return;
                     }
                     std ::string bady;

@@ -80,7 +80,7 @@ class Location {
 
 };
 int                                                                             parsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3);
-void                                                                            error_conf(int status);
+void                                                                            error_conf();
 std::vector<std::string>                                                        split_string(std::string str, char c);
 std::string                                                                     parsing_url(std::string url);
 int                                                                             ft_isdigit(std::string str);
