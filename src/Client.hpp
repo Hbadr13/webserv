@@ -13,56 +13,58 @@
 class Client
 {
 private:
-    std::map<std::string ,std::string> _mymap;
-    std::string _Transfer_Encoding;
-    Prasing_Request _parsing_reqst;
-    std::string _content_Length;
-    std::string _hostrqst;
-    Configuration _config;
-    std::string _message;
-    std::string _headrs;
-    std::string _reuqst;
-    Response _response;
-    std::string _body;
-    int _readyToRecv;
-    int _cont_legth;
-    int _connecfd;
-    int _sizedata;
-    int global;
-    int _eof;
+    std::map<std::string ,std::string>  _mymap;
+    std::string                         _Transfer_Encoding;
+    Prasing_Request                     _parsing_reqst;
+    std::string                         _content_Length;
+    std::string                         _hostrqst;
+    Configuration                       _config;
+    std::string                         _message;
+    std::string                         _headrs;
+    std::string                         _reuqst;
+    Response                            _response;
+    std::string                         _body;
+    int                                 _readyToRecv;
+    int                                 _cont_legth;
+    int                                 _connecfd;
+    // int                                 _sizedata;
+    pollfd                              _plfd;
 public:
     
-    pollfd plfd;
+    int                                 _eof;
     //---->      Getters & Setters     <---\\.
-    void setConfiguration(Configuration &conf);
-    Prasing_Request &getParsingRequest();
-    std::string &getTransfer_Encoding();
-    Configuration &getConfiguration();
-    std::string &getHostrqst();
-    void setConnecfd(int fd);
-    std::string &getReuqst();
-    Response &getResponse();
-    int &getReadyToRecv();
-    int getConnecfd();
-    int &getEof();
-    std::string &getMessage();
-    void setParsingRequest(Prasing_Request &prsrqst);
-    void setTransfer_Encoding(std::string &value);
-    void setMessage(std::string value, int size);
-    void setReuqst(char *value , int n);
-    void setHostrqst(std::string hostt);
-    void setResponse(Response respse);
-    void setReadyToRecv(int &value);
+    Prasing_Request                     &getParsingRequest();
+    Configuration                       &getConfiguration();
+    std::string                         &getTransfer_Encoding();
+    std::string                         &getHostrqst();
+    std::string                         &getMessage();
+    std::string                         &getReuqst();
+    int                                 &getReadyToRecv();
+    Response                            &getResponse();
+    int                                 getConnecfd();
+    pollfd                              &getPlfd();
+    int                                 &getEof();
+    void                                setParsingRequest(Prasing_Request &prsrqst);
+    void                                setTransfer_Encoding(std::string &value);
+    void                                setMessage(std::string value, int size);
+    void                                setConfiguration(Configuration &conf);
+    void                                setReuqst(char *value , int n);
+    void                                setHostrqst(std::string hostt);
+    void                                setResponse(Response respse);
+    void                                setReadyToRecv(int &value);
+    void                                setPolfd(pollfd plfd);
+    void                                setConnecfd(int fd);
     
     //---->       Memeber Fuction      <---\\.
-    int find_Transfer_Encoding();
-    int find_content_length();
-    int find_request_eof();
+    int                                 find_Transfer_Encoding();
+    int                                 find_content_length();
+    int                                 find_request_eof();
+    int                                 init_mayMap();
     
     //---->  Construction & Destructor <---\\.
-    Client(Configuration &confi);
-    ~Client();
-    Client();
+    Client(Configuration &confi)        ;
+    ~Client()                           ;
+    Client()                            ;
 };
 
 #endif

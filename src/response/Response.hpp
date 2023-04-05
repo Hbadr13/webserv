@@ -24,25 +24,24 @@
 #include <iostream>
 #include <string>
 #include "../request/Prasing_Request.hpp"
-#include "../Configfile/Configuration.hpp"
 #include "sys/wait.h"
 class Response
 {
 private:
-    int status;
-    
-    std ::map<std::string, std::string> mymap;
-    std ::map<int , std::string> mymap_erorr;
-    std::string respons;
+    int                                     status;
+    std ::map<std::string, std::string>     mymap;
+    std ::map<int , std::string>            mymap_erorr;
+    std::string                             respons;
 
 public:
-    int run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv,std::string psth);
-    Response();
     Response(Prasing_Request rq, Configuration conf_serv);
-    std ::string get_respons();
+    Response();
+    ~Response();
+    int                                     run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv,std::string psth);
+    std ::string                            get_respons();
 };
-std::string ft_read(std::string name);
-std::string int_to_string(int numb);
-std ::string Content_type(std ::string root);
+std::string                                 ft_read(std::string name);
+std::string                                 int_to_string(int numb);
+std ::string                                Content_type(std ::string root);
 
 #endif

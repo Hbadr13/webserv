@@ -1,0 +1,98 @@
+*{
+	margin: 0;
+	padding: 0;
+}
+
+.main{
+	width: 100%;
+	background: linear-gradient(to top, rgba(0,0,0,0.7)50%,rgba(0,0,0,0.7)50%), url(../IMG/Stars.jpg.webp);
+	background-position: center;
+	background-size: cover;
+	height: 109vh;
+}
+
+.navbar {
+	width: 1200px;
+	height: 75px;
+	margin: auto;
+}
+
+.icon {
+	width: 200px;
+	float: left;
+	height: 70px;
+}
+
+.logo {
+	color:  rgb(190, 171, 47);
+	font-size: 35px;
+	font-family: Arial;
+	padding-left: 20px;
+	float: left;
+	padding-top: 10px;
+}
+
+.menu {
+	width:  400px;
+	float: left;
+	height: 70px;
+}
+
+ul{
+	float: left;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+ul li{
+	list-style: none;
+	margin-left:  62px;
+	margin-top: 27px;
+	font-size: 14px; 
+}
+
+ul li a{
+	text-decoration: none;
+	color: rgb(255, 255, 255);
+	font-family: Arial;
+	font-weight: bold;
+	transition: 0.4s ease-in-out;
+}
+
+ul li a:hover{
+	color:  rgb(190, 171, 47);
+}
+
+
+form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 2rem;
+}
+
+input[type="file"] {
+	margin-bottom: 1rem;
+	background-color: #ffffff;
+	color: #000000;
+	padding: 0.5rem 1rem;
+	border: none;
+	border-radius: 0.25rem;
+	box-shadow: 0 0 0.25rem rgba(255, 255, 255, 0.1);
+}
+
+input[type="submit"] {
+	background-color: rgb(190, 171, 47);
+	color: #fff;
+	padding: 0.5rem 1rem;
+	border: none;
+	border-radius: 0.25rem;
+	box-shadow: 0 0 0.25rem rgba(0, 0, 0, 0.5);
+	cursor: pointer;
+	transition: background-color 0.2s ease-out;
+}
+
+input[type="submit"]:hover {
+	background-color: #27ae60;
+}

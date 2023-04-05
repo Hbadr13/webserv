@@ -2,6 +2,11 @@
 
 Response::Response()
 {
+
+}
+Response::~Response()
+{
+    
 }
 std::string int_to_string(int numb)
 {
@@ -12,7 +17,7 @@ std::string int_to_string(int numb)
 
 std ::string chec_url(std ::string urll)
 {
-    int i = 0;
+    size_t i = 0;
     int j = 0;
     std ::string result;
     while (urll[i] == '/')
@@ -30,39 +35,7 @@ std ::string chec_url(std ::string urll)
     return result;
 }
 
-std::pair<Location, std::string> find_location(std::string url, Configuration conf_serv)
-{
-    url = parsing_url(url);
-    std::vector<std::string> vect_str = split_string(url, '/');
-    std::string url_check;
-    int len = vect_str.size();
-    while (1)
-    {
-        url_check = "/";
-        int i = 0;
-        while (i < len)
-        {
-            url_check += vect_str[i];
-            if (i != len - 1)
-                url_check += "/";
-            i++;
-        }
-        len--;
-        std::map<std::string, std::map<std::string, std::vector<std::string> > >::iterator it = conf_serv.getlocations().begin();
-        while (it != conf_serv.getlocations().end())
-        {
-            if (!it->first.compare(url_check))
-            {
-                Location location(conf_serv, it->first);
-                return std::pair<Location, std::string>(location, it->first);
-            }
-            it++;
-        }
-        if (!url_check.compare("/"))
-            break;
-    }
-    return std::pair<Location, std::string>(Location(), std::string());
-}
+
 
 std ::string status_delete(int status, std ::string str, std ::map<int, std::string> mymap_erorr)
 {
@@ -152,7 +125,7 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
     mymap_erorr = conf_serv.geterror();
     std ::string url = rq.get_url();
     std ::string method = rq.get_method();
-    for (int i = 0; i < location_and_url.first.getallow_methods().size(); i++)
+    for (size_t i = 0; i < location_and_url.first.getallow_methods().size(); i++)
         if (method == location_and_url.first.getallow_methods()[i])
             found_method = 1;    
     if(status == 200)
@@ -194,7 +167,6 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
         if (dir)
             closedir(dir);
     }
-    // std:: cout << "hna haa 2\n";
     if (status == 200)
     {
         if (method == "POST" || method == "GET")
@@ -223,8 +195,8 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                 {
                     if (!location_and_url.second.compare("/cgi-bin"))
                     {
-                        run_cgi(location_and_url.first, rq, conf_serv,url2);
-                        return;
+                        if(run_cgi(location_and_url.first, rq, conf_serv,url2))
+                            return;
                     }
                     std ::string bady;
                     std::ifstream file(url2.c_str());

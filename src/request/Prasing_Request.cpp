@@ -2,6 +2,14 @@
 
 #include <bits/stdc++.h>
 
+Prasing_Request::Prasing_Request()
+{
+
+}
+Prasing_Request::~Prasing_Request()
+{
+    
+}
 int Prasing_Request::check_first_line(std::string first_line)
 {
     this->methode = strtok((char *)first_line.c_str(), " ");
@@ -12,7 +20,7 @@ int Prasing_Request::check_first_line(std::string first_line)
         return (0);
     }
     char *urlll = strtok(NULL, " ");
-    for (int i = 0; i < strlen(urlll); i++)
+    for (size_t i = 0; i < strlen(urlll); i++)
         if (urlll[i] != '?')
             this->url += urlll[i];
     std::string all_url = std::string(urlll);
@@ -52,7 +60,7 @@ std ::vector<std ::string> split(std::string str, std::string delimiter)
         int start = 0;
         do
         {
-            int idx = str.find(delimiter, start);
+            size_t idx = str.find(delimiter, start);
             if (idx == std ::string::npos)
             {
                 break;
@@ -64,21 +72,18 @@ std ::vector<std ::string> split(std::string str, std::string delimiter)
         } while (true);
         v.push_back(str.substr(start));
     }
-
     return v;
 }
 
 void Prasing_Request::prasing_headr(std ::string headrs)
 {
-    // std::cout<<"prasing_headr "<<headrs<<std::endl;
     std ::vector<std ::string> res = split(headrs, "\r\n");
-    for (int i = 0; i < res.size(); i++)
+    for (size_t i = 0; i < res.size(); i++)
     {
         std ::string key = res[i].substr(0, res[i].find(":"));
-        std ::string value = res[i].substr(res[i].find(" "));
+        std ::string value = res[i].substr(res[i].find(" ") + 1);
         mymap.insert(std ::pair<std ::string, std::string>(key, value));
     }
-    // std :: cout << mymap["Host"] << std::endl;
     if (status == 200)
     {
         if (this->methode == "POST" && mymap["Content-Type"].empty())
@@ -87,7 +92,7 @@ void Prasing_Request::prasing_headr(std ::string headrs)
             status = 400;
             return;
         }
-        if (mymap["Transfer-Encoding"] != " chunked")
+        if (mymap["Transfer-Encoding"] != "chunked")
         {
             if (this->methode == "POST" && (mymap["Content-Length"].empty() || atoi(mymap["Content-Length"].c_str()) < 0))
             {
@@ -102,7 +107,7 @@ void Prasing_Request::prasing_headr(std ::string headrs)
             status = 400;
             return;
         }
-        if (atoi(mymap["Content-Length"].c_str()) > 999999999)
+        if (atoi(mymap["Content-Length"].c_str()) > _limit_pody)
         {
             std ::cout << "eroore on size Content-Length " << std::endl;
             status = 400;
@@ -112,7 +117,7 @@ void Prasing_Request::prasing_headr(std ::string headrs)
 }
 std ::string ft_chanked(std ::string body)
 {
-    int i = 0;
+    size_t i = 0;
     int tr = 0;
     std ::string chunked;
     while (i < body.length())
@@ -125,7 +130,6 @@ std ::string ft_chanked(std ::string body)
             hex += body[i];
             i++;
         }
-        // std :: cout << "\n||||||||||||" << hex << "|||||||||||\n";
         tr = (int)strtol(hex.c_str(), NULL, 16);
         i += 2;
         while (tr > 0)
@@ -138,7 +142,41 @@ std ::string ft_chanked(std ::string body)
     return chunked;
 }
 
-Prasing_Request::Prasing_Request(std::string hedr)
+std::pair<Location, std::string> find_location(std::string url, Configuration conf_serv)
+{
+    url = parsing_url(url);
+    std::vector<std::string> vect_str = split_string(url, '/');
+    std::string url_check;
+    int len = vect_str.size();
+    while (1)
+    {
+        url_check = "/";
+        int i = 0;
+        while (i < len)
+        {
+            url_check += vect_str[i];
+            if (i != len - 1)
+                url_check += "/";
+            i++;
+        }
+        len--;
+        std::map<std::string, std::map<std::string, std::vector<std::string> > >::iterator it = conf_serv.getlocations().begin();
+        while (it != conf_serv.getlocations().end())
+        {
+            if (!it->first.compare(url_check))
+            {
+                Location location(conf_serv, it->first);
+                return std::pair<Location, std::string>(location, it->first);
+            }
+            it++;
+        }
+        if (!url_check.compare("/"))
+            break;
+    }
+    return std::pair<Location, std::string>(Location(), std::string());
+}
+
+Prasing_Request::Prasing_Request(std::string hedr , Configuration &conf_serv)
 {
     if (!hedr.at(0))
         return;
@@ -146,7 +184,8 @@ Prasing_Request::Prasing_Request(std::string hedr)
     std ::string first;
     std ::string hdr;
     std ::string body;
-    int i = 0;
+    std::string limet;
+    size_t i = 0;
     while (i < hedr.length())
     {
         if (hedr.at(i) == '\r' || hedr.at(i) == '\n')
@@ -157,19 +196,23 @@ Prasing_Request::Prasing_Request(std::string hedr)
     first = hedr.substr(0, i);
     hdr = hedr.substr(0, hedr.find("\r\n\r\n"));
     body = hedr.substr(hedr.find("\r\n\r\n"));
-    // std :: cout <<"______________________"<< hedr <<"____________________"<< std::endl;
     std ::string chunked;
     if (!check_first_line(first))
         return;
+    std::pair<Location, std::string> location_and_url = find_location(this->url, conf_serv);
+    limet = conf_serv.getlimit_client_body_size();
+    if(!location_and_url.first.get_limit_client_body_size().empty())
+        limet = location_and_url.first.get_limit_client_body_size();
+    if(!limet.empty())
+        _limit_pody = atoi(limet.c_str());
+    else
+        _limit_pody = 999999999;
     prasing_headr(hdr);
-    // std :: cout << "::::::::::::::" << std :: endl;
-    // std :: cout <<"||" <<mymap["Transfer-Encoding"] << "||"<<std :: endl;
     if (this->status != 200)
         return;
-    // std :: cout << body << std :: endl;
     if (get_method() == "POST")
     {
-        if (mymap["Transfer-Encoding"] == " chunked")
+        if (mymap["Transfer-Encoding"] == "chunked")
             body = ft_chanked(body);
         std ::string finish_body = hdr + body;
 
@@ -179,7 +222,6 @@ Prasing_Request::Prasing_Request(std::string hedr)
     hdr.clear();
     first.clear();
     body.clear();
-    //  system("leaks webserv");
 }
 void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
 {
@@ -188,8 +230,8 @@ void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
     int i = 0;
     std::vector<std::string> one_body;
     nb = "--";
-    int index = body1.find("boundary=");
-    if (index == -1)
+    size_t index = body1.find("boundary=");
+    if (index == std::string::npos)
         return;
     else
     {
@@ -198,10 +240,10 @@ void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
             nb.push_back(body1[index]);
     }
 
-    int index2 = 0;
-    int fin = 0;
+    size_t index2 = 0;
+    size_t fin = 0;
     int rq = 0;
-    for (; index2 != -1; i++)
+    for (; index2 != std ::string::npos; i++)
     {
 
         index2 = body2.find(nb, fin);
@@ -214,14 +256,8 @@ void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
         if (body2[fin + nb.size() + 1] == '-' && body2[fin + nb.size()] == '-')
             break;
     }
-
-    // std ::cout << one_body[rq] << std ::endl;
-    // std ::cout <<"||||||||||||||"<< body2 << "||||||||||||" << std::endl;
-
     if (body2.size() > 4)
     {
-        std :: cout << "********************************"<< std::endl;
-
         while (rq <= i)
         {
             if ((one_body[rq].find("filename=") != std::string::npos))
@@ -242,14 +278,13 @@ void Prasing_Request ::prasing_body(std ::string body1, std::string body2)
                 if (!filename.empty())
                 {
                     std ::ofstream MyFile(filee);
-                    // std::cout << "hna hna\n";
                     MyFile << str;
                     MyFile.close();
                 }
             }
             rq++;
         }
-    } // std ::cout << "::::::::::::::" << std ::endl;
+    } 
 }
 std ::string Prasing_Request::get_url()
 {

@@ -2,7 +2,6 @@
 
 Client::Client()
 {
-
 }
 
 int Client::getConnecfd()
@@ -16,12 +15,22 @@ void Client::setConnecfd(int fd)
 
 Client::~Client()
 {
-    _content_Length = "";
+    _content_Length.clear();
+    _eof = false;
     _readyToRecv = true;
-    // _config.~Configuration();
-    _headrs = "";
-    _reuqst = "";
-    _body = "";
+    _headrs.clear();
+    _reuqst.clear();
+    _body.clear();
+}
+Client::Client(Configuration &confi)
+{
+    _content_Length.clear();
+    _readyToRecv = true;
+    _eof = false;
+    _config = confi;
+    _headrs.clear();
+    _reuqst.clear();
+    _body.clear();
 }
 void Client::setConfiguration(Configuration &conf)
 {
@@ -43,14 +52,13 @@ void Client::setReadyToRecv(int &value)
 {
     _readyToRecv = value;
 }
-Client::Client(Configuration &confi)
+pollfd &Client::getPlfd()
 {
-    _content_Length = "";
-    _readyToRecv = true;
-    _config = confi;
-    _headrs = "";
-    _reuqst = "";
-    _body = "";
+    return _plfd;
+}
+void Client::setPolfd(pollfd plfd)
+{
+    _plfd = plfd;
 }
 std::string &Client::getTransfer_Encoding()
 {
@@ -106,12 +114,53 @@ Configuration &Client::getConfiguration()
     return _config;
 }
 
+
+
+
+std ::vector<std ::string> ft_split(std::string str, std::string delimiter)
+{
+    std ::vector<std ::string> v;
+    if (!str.empty())
+    {
+        size_t start = 0;
+        do
+        {
+            size_t idx = str.find(delimiter, start);
+            if (idx == std ::string::npos)
+                break;
+            int length = idx - start;
+            v.push_back(str.substr(start, length));
+            start += (length + delimiter.size());
+        } while (true);
+        v.push_back(str.substr(start));
+    }
+    return v;
+}
+
+int Client::find_Transfer_Encoding()
+{
+    if (_reuqst.find("Transfer-Encoding: ") == std::string::npos)
+        return 0;
+    int start = _reuqst.find("Transfer-Encoding: ") + strlen("Transfer-Encoding: ");
+    size_t i = start;
+    while (i < _reuqst.size() - 1)
+    {
+        if (_reuqst[i] == '\r' && _reuqst[i + 1] == '\n')
+        {
+            _Transfer_Encoding = _reuqst.substr(start, i - start);
+            return 1;
+        }
+        i++;
+    }
+    return 0;
+}
+
 int Client::find_content_length()
 {
-    if (_reuqst.find("Content-Length") == std::string::npos)
+    if (_reuqst.find("Content-Length: ") == std::string::npos)
         return 0;
-    int start = _reuqst.find("Content-Length") + strlen("Content-Length: ");
-    int i = start;
+    int start = _reuqst.find("Content-Length: ") + strlen("Content-Length: ");
+    size_t i = start;
     while (i < _reuqst.size() - 1)
     {
         if (_reuqst[i] == '\r' && _reuqst[i + 1] == '\n')
@@ -124,90 +173,58 @@ int Client::find_content_length()
     return 0;
 }
 
-int Client::find_Transfer_Encoding()
+int Client::init_mayMap()
 {
-    if (_reuqst.find("Transfer-Encoding") == std::string::npos)
-        return 0;
-    int start = _reuqst.find("Transfer-Encoding") + strlen("Transfer-Encoding: ");
-    int i = start;
-    while (i < _reuqst.size() - 1)
-    {
-        if (_reuqst[i] == '\r' && _reuqst[i + 1] == '\n')
-        {
-            _Transfer_Encoding = _reuqst.substr(start, i - start);
-            std::cout << _Transfer_Encoding;
-            // exit(1);
-            return 1;
-        }
-        i++;
-    }
+    std::string headr;
+    std::cout<<"-----\n"<<_reuqst;
+    if(_reuqst.find("\r\n\r\n")!= std::string::npos)
+        return 1;
+    headr = _reuqst.substr(0, _reuqst.find("\r\n\r\n"));
+    headr = _reuqst.substr(_reuqst.find("\r\n") + 2, _reuqst.size());
     return 0;
-}
-
-std ::vector<std ::string> ft_split(std::string str, std::string delimiter)
-{
-    std ::vector<std ::string> v;
-    if (!str.empty())
-    {
-        int start = 0;
-        do
-        {
-            int idx = str.find(delimiter, start);
-            if (idx == std ::string::npos)
-                break;
-            int length = idx - start;
-            v.push_back(str.substr(start, length));
-            start += (length + delimiter.size());
-        } while (true);
-        v.push_back(str.substr(start));
-    }
-
-    return v;
 }
 
 int Client::find_request_eof()
 {
     std::string farstline;
-    if (_readyToRecv)
+    // init_mayMap();
+    if (find_content_length())
     {
-        if (find_content_length())
-        {
-            _readyToRecv = false;
-            _cont_legth = atoi(_content_Length.c_str());
-        }
-        if (find_Transfer_Encoding())
-        {
-
-        }
+        _readyToRecv = false;
+        _cont_legth = atoi(_content_Length.c_str());
+    }
+    if (find_Transfer_Encoding())
+    {
     }
     if (_reuqst.find("\r\n\r\n") != std::string::npos && _headrs.empty())
     {
         _headrs = _reuqst.substr(0, _reuqst.find("\r\n\r\n")) + "\r\n\r\n";
         if (_content_Length.empty())
-            _eof = true;
+                _eof = true;
     }
     if (_readyToRecv == false)
     {
         if (_reuqst.size() == _cont_legth + _headrs.size())
             _eof = true;
     }
-    if(!_Transfer_Encoding.compare("chunked") && (_reuqst.find("\r\n0\r\n") != std::string::npos))
-    {
-         _eof = true;
-    }
+    if (!_Transfer_Encoding.compare("chunked") && (_reuqst.find("\r\n0\r\n") != std::string::npos))
+        _eof = true;
     std ::vector<std ::string> res = ft_split(_reuqst, "\r\n");
-    for (int i = 0; i < res.size(); i++)
+    std ::string key;
+    std ::string value;
+    for (size_t i = 0; i < res.size(); i++)
     {
-        std ::string key = res[i].substr(0, res[i].find(":"));
-        std ::string value = res[i].substr(res[i].find(" ") + 1);
+        key = "";
+        value =  "";
+        // if(res[i].find(":") != std::string::npos)
+            key = res[i].substr(0, res[i].find(":"));
+        // if(res[i].find(" ") + 1 != std::string::npos)
+            value = res[i].substr(res[i].find(" ") + 1);
         _mymap.insert(std ::pair<std ::string, std::string>(key, value));
     }
-    if(_mymap["Host"].find(":") != std::string::npos)
-        _hostrqst = _mymap["Host"].substr(0,_mymap["Host"].find(":"));
+    if (_mymap["Host"].find(":") != std::string::npos)
+        _hostrqst = _mymap["Host"].substr(0, _mymap["Host"].find(":"));
     else
         _hostrqst = _mymap["Host"];
-
-    std::cout<<"host|"<< _hostrqst<<std::endl;
     return 0;
 }
-

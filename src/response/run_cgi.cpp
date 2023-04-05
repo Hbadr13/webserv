@@ -48,8 +48,33 @@ char **get_env_form_map(std::map<std::string, std::string> &map_env)
     return envp;
 }
 
-char **init_may_env(Location &location, Prasing_Request &requst, Configuration &conf_serv)
+char **init_may_env(Prasing_Request &requst, Configuration &conf_serv)
 {
+    std::string name;
+    std::string value;
+    std::string url1 = requst.get_budy_url();
+    if (!url1.empty())
+    {     
+        std::cout<<"->>"<<url1<<std::endl;       
+        size_t lenName = url1.find("=");
+        if (lenName == std::string::npos)
+            ;
+        else
+        {
+            lenName++;
+            for (; url1[lenName] != '&'; lenName++)
+                name += url1[lenName];
+        }
+        size_t lenValue = url1.find("=", lenName);
+        if (lenValue == std::string::npos)
+            ;
+        else
+        {
+            lenValue++;
+            for (; lenValue < url1.size(); lenValue++)
+                value += url1[lenValue];
+        }
+    }
     std::string url = parsing_url(requst.get_url());
     std::map<std::string, std::string> map_env;
     char *ptr;
@@ -76,6 +101,11 @@ char **init_may_env(Location &location, Prasing_Request &requst, Configuration &
         map_env["PATH_TRANSLATED"] = "";
     if(ptr)
         free(ptr);
+    if (!name.empty() || !name.empty())
+    {
+        map_env["NAME"] = name;
+        map_env["VALUE"] = value;
+    }
     map_env["SCRIPT_FILENAME"] = url.substr(1, url.size());
     map_env["SCRIPT_NAME"] = url;
     map_env["AUTH_TYPE"] = "Basic";
@@ -116,7 +146,7 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     int fd;
 
     flag = 0;
-    int i;
+    size_t i;
     for (i = 0; i < location.getallow_methods().size(); i++)
     {
         if (!location.getallow_methods()[i].compare(requst.get_method()))
@@ -131,7 +161,7 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         this->respons += "content-type: text/html\r\n";
         this->respons += "\r\n";
         this->respons += return_path(mymap_erorr[403], "403");
-        return 1;
+        return 0;
     }
     int fd_execute = open(path.c_str(), O_RDONLY);
     std::ofstream outfile("src/error/trash/trash.txt");
@@ -166,7 +196,7 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         av[1] = strdup((path).c_str());
         av[2] = NULL;
     }
-    envp = init_may_env(location, requst, conf_serv);
+    envp = init_may_env(requst, conf_serv);
     pid = fork();
     if (pid == -1)
     {
