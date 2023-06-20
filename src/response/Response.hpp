@@ -23,7 +23,7 @@
 #include <dirent.h>
 #include <iostream>
 #include <string>
-#include "../request/Prasing_Request.hpp"
+#include "../request/Request.hpp"
 #include "sys/wait.h"
 class Response
 {
@@ -34,10 +34,10 @@ private:
     std::string                             respons;
 
 public:
-    Response(Prasing_Request rq, Configuration conf_serv);
+    Response(Request rq, Configuration conf_serv);
     Response();
-    ~Response();
-    int                                     run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv,std::string psth);
+    ~Response(); 
+    int                                     run_cgi(Location &location, Request &requst, Configuration &conf_serv,std::string psth);
     std ::string                            get_respons();
 };
 std::string                                 ft_read(std::string name);

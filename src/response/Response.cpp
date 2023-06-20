@@ -36,7 +36,7 @@ std ::string chec_url(std ::string urll)
 std ::string status_delete(int status, std ::string str, std ::map<int, std::string> mymap_erorr)
 {
     std ::string bady;
-    std ::string url3; // = "error/" + int_to_string(status) + ".html";
+    std ::string url3;
     int h;
     if ((h = open(mymap_erorr[status].c_str(), O_RDWR)) != -1)
     {
@@ -48,7 +48,9 @@ std ::string status_delete(int status, std ::string str, std ::map<int, std::str
 
     int d = open(url3.c_str(), O_RDWR);
     if (d == -1)
+    {
         return (NULL);
+    }
     time_t now = time(0);
     char *time = ctime(&now);
     std::ifstream file(url3.c_str());
@@ -107,9 +109,10 @@ std ::string check_auto(Location &location, Configuration &conf_serv, std ::stri
         str = root + "/" + conf_serv.getindex();
     return str;
 }
-Response::Response(Prasing_Request rq, Configuration conf_serv)
+Response::Response(Request rq, Configuration conf_serv)
 {
-    std::pair<Location, std::string> location_and_url = find_location(rq.get_url(), conf_serv);
+    std::string str99;
+    std::pair<Location, std::string> location_and_url = find_location(rq.get_url(), conf_serv, str99);
     int found_method = 0;
     std ::string root;
     std ::string url2;
@@ -119,8 +122,10 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
     status = rq.get_status();
     mymap = rq.get_mymap();
     mymap_erorr = conf_serv.geterror();
-    std ::string url = rq.get_url();
+    std ::string url =  "/" + rq.getUrl2();
+    //rq.get_url();
     std ::string method = rq.get_method();
+    std::cout << "___________________________________"<<rq.get_url()<<"________________________________\n";
     for (size_t i = 0; i < location_and_url.first.getallow_methods().size(); i++)
         if (method == location_and_url.first.getallow_methods()[i])
             found_method = 1;
@@ -175,7 +180,7 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
             else
                 dir = opendir(url2.c_str());
             std::string url1;
-            if (url == location_and_url.second)
+            if (rq.get_url() == location_and_url.second)
             {
 
                 if (!location_and_url.first.getreturn().empty())
@@ -229,7 +234,7 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                     autoindex = "on";
                 else
                 {
-                    std ::string url3; //= "error/" + int_to_string(status) + ".html";
+                    std ::string url3;
                     int h;
                     if (dir != NULL || fd == 0 || (!access(url2.c_str(), F_OK) && access(url2.c_str(), R_OK)))
                     {
@@ -307,7 +312,8 @@ Response::Response(Prasing_Request rq, Configuration conf_serv)
                             name1 = name;
                         else
                             name1 = url + "/" + name;
-                        msg += "\n<li><a href=\"" + name1 + "\">" + name + "</a></li>\n";
+                        if (name != ".")
+                            msg += "\n<li><a href=\"" + name1 + "\">" + name + "</a></li>\n";
                     }
                     msg += "</ol>\n\
                            </html>";

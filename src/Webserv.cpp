@@ -115,7 +115,7 @@ int Webserv::init_server()
         serv_addr.sin_port = htons(_confgs[i].getlisten());
         if (bind(sockfd, (struct sockaddr *)(&serv_addr), sizeof(serv_addr)) == -1)
             ;
-        if (listen(sockfd, 5) == -1)
+        if (listen(sockfd, SOMAXCONN) == -1)
         {
             perror("listen:");
             return 1;
@@ -134,7 +134,7 @@ int Webserv::setup_poollfd()
     {
         pollfd fd;
         fd.fd = it->first;
-        fd.events = POLLIN | POLLOUT | POLLHUP;
+        fd.events = POLLIN | POLLOUT;
         _pollfd.push_back(fd);
         it++;
     }
@@ -193,11 +193,6 @@ int Webserv::ft_accept(pollfd &tmp_fd)
     }
     else
     {
-        if (fcntl(accepted.fd, F_SETFL, O_NONBLOCK) < 0)
-        {
-            perror("fcntl error");
-            return 1;
-        }
         accepted.events = POLLIN;
         Client *client = new Client();
         client->setPolfd(accepted);
@@ -239,7 +234,7 @@ int Webserv::ft_recv(pollfd &tmp_fd, int i, int j)
         tmp_fd.events = POLLOUT;
         _clients[j]->_eof = 0;
         server_matching(j);
-        Prasing_Request prs_reqst(_clients[j]->getReuqst(),_clients[j]->getConfiguration());
+        Request prs_reqst(_clients[j]->getReuqst(),_clients[j]->getConfiguration());
         _clients[j]->setParsingRequest(prs_reqst);
         Response response(prs_reqst, _clients[j]->getConfiguration());
         _clients[j]->setResponse(response);

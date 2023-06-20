@@ -24,7 +24,7 @@ std::string search_in_location_string(std::vector<std::pair<std::string, std::ve
 }
 Location::Location()
 {
-
+ 
 }
 Location::~Location()
 {
@@ -43,7 +43,7 @@ Location::Location(Configuration &conf, std::string path)
                 if (!it2->first.compare("allow_methods"))
                     _allow_methods = it2->second;
                 if (!it2->first.compare("cgi_execute"))
-                    _cgi_execute = it2->second[0];
+                    _cgi_execute = it2->second;
                 if (!it2->first.compare("return"))
                     _return = it2->second;
                 if (!it2->first.compare("index"))
@@ -52,6 +52,8 @@ Location::Location(Configuration &conf, std::string path)
                     _root = it2->second[0];
                 if (!it2->first.compare("autoindex"))
                     _autoindex = it2->second[0];
+                if (!it2->first.compare("limit_client_body_size"))
+                    _limit_client_body_size = it2->second[0];
                 it2++;
             }
         }
@@ -79,7 +81,7 @@ std::string &Location::getindex()
     return _index;
 }
 
-std::string &Location::getcgi_execute()
+std::vector<std::string> &Location::getcgi_execute()
 {
     return _cgi_execute;
 }

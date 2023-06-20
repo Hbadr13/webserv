@@ -1,6 +1,7 @@
 #ifndef CONFIGURATION_HPP
 #define CONFIGURATION_HPP
 
+#include "Location.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -8,6 +9,7 @@
 #include <vector>
 #include <map>
 
+class Location;
 class Configuration
 {
 private:
@@ -51,34 +53,6 @@ public:
     int                                                                         &getlisten() ;
 };
 
-class Location {
-    private:
-    std::string                                                                 _limit_client_body_size;
-    std::vector<std::string>                                                    _allow_methods;
-    std::vector<std::string>                                                    _return;
-    std::string                                                                 _root;
-    std::string                                                                 _autoindex;
-    std::string                                                                 _index;
-    std::string                                                                 _cgi_execute;
-    int                                                                         _location_exist;
-    public :
-    //---->  Construction & Destructor <---\\.
-    Location(Configuration &conf, std::string);
-    ~Location();
-    Location();
-
-    //---->      Getters & Setters     <---\\.
-    std::string                                                                 &getroot();
-    std::string                                                                 &getautoindex();
-    std::string                                                                 &getindex();
-    std::vector<std::string>                                                    &getreturn();
-    std::string                                                                 &getcgi_execute();
-    std::vector<std::string>                                                    &getallow_methods();
-    int                                                                         &getlocation_exist();
-    std::string                                                                 &get_limit_client_body_size();
-    //---->       Memeber Fuction      <---\\.
-
-};
 int                                                                             parsingLocation(std::map<std::string, std::vector<std::string> >::iterator it3);
 void                                                                            error_conf();
 std::vector<std::string>                                                        split_string(std::string str, char c);

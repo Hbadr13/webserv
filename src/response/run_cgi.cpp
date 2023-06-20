@@ -24,7 +24,8 @@ void free_tab(char **envp)
     {
         free(envp[i]);
     }
-    free(envp);
+    if(envp)
+        free(envp);
 }
 
 char **get_env_form_map(std::map<std::string, std::string> &map_env)
@@ -48,7 +49,7 @@ char **get_env_form_map(std::map<std::string, std::string> &map_env)
     return envp;
 }
 
-char **init_may_env(Prasing_Request &requst, Configuration &conf_serv)
+char **init_may_env(Request &requst, Configuration &conf_serv)
 {
     std::string name;
     std::string value;
@@ -94,7 +95,7 @@ char **init_may_env(Prasing_Request &requst, Configuration &conf_serv)
     map_env["SERVER_PROTOCOL"] = "HTTP/1.1";
     ptr = getcwd(NULL, 0);
     if (ptr)
-        map_env["PATH_TRANSLATED"] = (std::string)getcwd(NULL, 0);
+        map_env["PATH_TRANSLATED"] = (std::string)ptr;
     else
         map_env["PATH_TRANSLATED"] = "";
     if(ptr)
@@ -131,8 +132,9 @@ std::string return_path(std::string path, std::string status)
     return buf;
 }
 
-int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration &conf_serv,std::string path)
+int Response::run_cgi(Location &location, Request &requst, Configuration &conf_serv,std::string path)
 {
+
     std::string status;
     std::string root;
     int status_exec;
@@ -200,6 +202,7 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         this->respons += "\r\n";
         this->respons += return_path(mymap_erorr[500], "500");
         free_tab(envp);
+        free_tab(av);
         unlink("src/server/trash//trash.txt");
         std::cout<<"ERROR CGI: problem in fork"<<std::endl;
         return 1;
@@ -219,11 +222,12 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
         close(fd_execute);
         if (status_exec)
         {
-            this->respons = "HTTP/1.1 500 Internal Server Error\r\n";
+            this->respons = "HTTP/1.1 502 Bad Gatewayr\r\n";
             this->respons += "content-type: text/html\r\n";
             this->respons += "\r\n";
-            this->respons += return_path(mymap_erorr[500], "500");
+            this->respons += return_path(mymap_erorr[500], "502");
             free_tab(envp);
+            free_tab(av);
             unlink("src/server/trash/trash.txt");
             std::cout<<"ERROR CGI: error in execve"<<std::endl;
             return 1;
@@ -231,8 +235,10 @@ int Response::run_cgi(Location &location, Prasing_Request &requst, Configuration
     }
     this->respons = "HTTP/1.1 200\r\n";
     this->respons += return_path("src/server/trash/trash.txt", "-1");
-    free_tab(envp);
     unlink("src/server/trash/trash.txt");
+    free_tab(envp);
+    free_tab(av);
+
     return 1;
 }
 

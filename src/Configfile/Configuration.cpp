@@ -76,18 +76,12 @@ void Configuration::config_valide()
         std::map<std::string, std::vector<std::string> >::iterator it3 = it2->second.begin();
         if (!it2->first.compare("/cgi-bin"))
         {
-            std::string str1;
-            std::string str2;
             while (it3 != it2->second.end())
             {
                 int check = parsingLocation(it3);
                 if (!it3->first.compare("index"))
                 {
                     if (it3->second.size() != 1)
-                        error_conf();
-                    int ind = it3->second[0].find(".");
-                    str1 = it3->second[0].substr(ind, it3->second[0].length());
-                    if (str1.compare(".py") && str1.compare(".php"))
                         error_conf();
                 }
                 else if (check == 1)
@@ -96,19 +90,15 @@ void Configuration::config_valide()
                 {
                     if (!it3->first.compare("cgi_execute"))
                     {
-                        str2 = it3->second[0];
-                        if (it3->second.size() != 1)
-                            error_conf();
-                        if (it3->second[0].compare(".py") && it3->second[0].compare(".php"))
-                            error_conf();
-                        else
-                            ;
+                        for (size_t i = 0; i < it3->second.size();i++)
+                        {
+                            if (it3->second[i].compare(".py") && it3->second[i].compare(".php"))
+                                error_conf();
+                        }
                     }
                 }
                 it3++;
             }
-            if (str2 != str1)
-                error_conf();
         }
         else
         {

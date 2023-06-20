@@ -5,7 +5,7 @@
 
 .main{
 	width: 100%;
-	background: linear-gradient(to top, rgba(0,0,0,0.7)50%,rgba(0,0,0,0.7)50%), url(../IMG/Stars.jpg.webp);
+	background: linear-gradient(to top, rgba(0,0,0,0.7)50%,rgba(0,0,0,0.7)50%), url(Stars.jpg.webp);
 	background-position: center;
 	background-size: cover;
 	height: 109vh;

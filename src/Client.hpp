@@ -5,17 +5,17 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 #include "Configfile/Configuration.hpp"
-#include "../src/request/Prasing_Request.hpp"
+#include "../src/request/Request.hpp"
 #include "response/Response.hpp"
 #include <poll.h>
 
 
 class Client
-{
+{ 
 private:
     std::map<std::string ,std::string>  _mymap;
     std::string                         _Transfer_Encoding;
-    Prasing_Request                     _parsing_reqst;
+    Request                             _parsing_reqst;
     std::string                         _content_Length;
     std::string                         _hostrqst;
     Configuration                       _config;
@@ -33,18 +33,18 @@ public:
     
     int                                 _eof;
     //---->      Getters & Setters     <---\\.
-    Prasing_Request                     &getParsingRequest();
+    Request                             &getParsingRequest();
     Configuration                       &getConfiguration();
     std::string                         &getTransfer_Encoding();
     std::string                         &getHostrqst();
-    std::string                         &getMessage();
+    std::string                         &getMessage(); 
     std::string                         &getReuqst();
     int                                 &getReadyToRecv();
     Response                            &getResponse();
     int                                 getConnecfd();
     pollfd                              &getPlfd();
     int                                 &getEof();
-    void                                setParsingRequest(Prasing_Request &prsrqst);
+    void                                setParsingRequest(Request &prsrqst);
     void                                setTransfer_Encoding(std::string &value);
     void                                setMessage(std::string value, int size);
     void                                setConfiguration(Configuration &conf);
@@ -59,7 +59,7 @@ public:
     int                                 find_Transfer_Encoding();
     int                                 find_content_length();
     int                                 find_request_eof();
-    int                                 init_mayMap();
+    int                                 find_Host();
     
     //---->  Construction & Destructor <---\\.
     Client(Configuration &confi)        ;
